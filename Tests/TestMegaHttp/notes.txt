@@ -1,0 +1,41 @@
+1=ON  2=ON  3=OFF 4=OFF 5=OFF 6=OFF 7=OFF 8=OFF (ATmega2560<->ESP8266)
+1=OFF 2=OFF 3=ON  4=ON  5=OFF 6=OFF 7=OFF 8=OFF (USB <->ATmega2560)
+1=OFF 2=OFF 3=OFF 4=OFF 5=ON  6=ON  7=ON  8=OFF (USB<->ESP8266 (Update firmware or sketch))
+1=OFF 2=OFF 3=OFF 4=OFF 5=ON  6=ON  7=OFF 8=OFF (USB<->ESP8266 (communication))
+1=OFF 2=OFF 3=OFF 4=OFF 5=OFF 6=OFF 7=OFF 8=OFF (All independent)
+
+I want to marry this guy
+https://forum.arduino.cc/index.php?topic=578430.0
+
+// Step 1: Web server
+
+Follow the steps (message from Nov 09, 2018, 11:34 pm), then when connected you should be able to connect to 192.168.0.20:80 in browser
+
+// Step 2: Handling requests
+
+In the ESP8266 program, add this
+
+void handleArgs() { 
+  String message = "";
+  if (server.arg("Temperature") == ""){     //Parameter not found
+    message = "Temperature Argument not found";
+  }else{     //Parameter found
+    message = "Temperature Argument = ";
+    message += server.arg("Temperature");     //Gets the value of the query parameter
+  }
+  server.send(200, "text/html", "<h1>You are connected</h1>" + message);          //Returns the HTTP response
+}
+//In setup()
+server.on("/args", handleArgs); //Calls handleArgs when client connects with 192.168.0.20:80/args?Temperature=0
+
+(Done in SimpleWebServer)
+
+// Step 3: Communication with arduino
+
+Add serial communication, Serial3 on the Mega, Serial on the Esp 
+
+Switch RXD3/TXD3 ON
+Switches 1 to 4 ON, 5 to 8 OFF
+Go to http://192.168.0.20/args?state=0 http://192.168.0.20/args?state=1
+
+(Done in LedSwitch)

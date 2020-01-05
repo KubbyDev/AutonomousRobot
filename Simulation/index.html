@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Autonomous Robot Simulator</title>
+</head>
+<body>
+
+<canvas id="myCanvas" width="1900" height="1000"></canvas>
+
+<script src="Tools/Vector.js"></script>
+<script src="Tools/Line.js"></script>
+<script src="Tools/Tools.js"></script>
+<script src="SceneObject.js"></script>
+<script src="Scene.js"></script>
+<script src="Robot/Robot.js"></script>
+<script src="Robot/Sonar.js"></script>
+<script src="Robot/Control/ControlAlgorihtm.js"></script>
+<script src="Robot/Control/InternMap.js"></script>
+<script src="Robot/Control/BooleanMatrix.js"></script>
+<script src="Robot/Control/Pathfinding.js"></script>
+
+<script>
+
+    const canvas = document.getElementById("myCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Borders of the simulation world
+    addWall(new Line(new Vector(5,5), new Vector(495,5)).setWidth(5));
+    addWall(new Line(new Vector(495,5), new Vector(495,495)).setWidth(5));
+    addWall(new Line(new Vector(495,495), new Vector(5,495)).setWidth(5));
+    addWall(new Line(new Vector(5,495), new Vector(5,5)).setWidth(5));
+
+    // Top cube
+    let sceneobject = new SceneObject();
+    sceneobject.color = "#4f534e";
+    sceneobject.width = 30;
+    sceneobject.length = 30;
+    sceneobject.position = new Vector(200, 200);
+    addObject(sceneobject);
+
+    // Bottom cube
+    let sceneobject2 = new SceneObject();
+    sceneobject2.color = "#4f534e";
+    sceneobject2.width = 30;
+    sceneobject2.length = 30;
+    sceneobject2.position = new Vector(300, 400);
+    addObject(sceneobject2);
+
+    let robot = new Robot();
+    robot.color = "#ff002a";
+    robot.width = 5;
+    robot.length = 12;
+    robot.position = new Vector(250, 250);
+    robot.controlAlgorithm.resetPositionAndRotation(
+        robot.position.multiply(1/ControlAlgorithm.PIXEL_LENGTH), //Conversion between simulated world and intern map
+        robot.rotation
+    );
+    addObject(robot);
+
+    setInterval(() => {
+        ctx.clearRect(0,0, canvas.width, canvas.height);
+        updateScene();
+        drawScene();
+    }, 20);
+
+    let dir = 1;
+    setInterval(() => {
+        sceneobject.position.x += dir * 1;
+        sceneobject.areCornersCorrect = false;
+        if(sceneobject.position.x > 300 || sceneobject.position.x < 100)
+            dir *= -1;
+    }, 20);
+
+    objects[2].position = new Vector(50, 200);
+    objects[2].areCornersCorrect = false;
+
+</script>
+
+</body>
+</html>
