@@ -26,18 +26,6 @@ void getMovementInput(Vector* targetPos, float* forwardInput, float* turnInput) 
     // Calculates the needed turn input to reach the target
     float targetAngle = atan2(targetPos->y - position->y, 
                               targetPos->x - position->x);
-
-    /*
-    Serial.println("-------------------------");
-    Serial.print("PosX: ");Serial.println(position->x);    
-    Serial.print("PosY: ");Serial.println(position->y);
-    Serial.print("TargetX: ");Serial.println(target->x);    
-    Serial.print("TargetY: ");Serial.println(target->y);
-    Serial.print("DeltaX: ");Serial.println(targetPos->x - position->x);    
-    Serial.print("DeltaY: ");Serial.println(targetPos->y - position->y);
-    Serial.print("Current angle: ");Serial.println(rotation);
-    Serial.print("Target angle: ");Serial.println(targetAngle);
-    */
     
     clampAngle(&targetAngle);
     
@@ -88,16 +76,25 @@ Vector* getNextPosition() {
 
 void updateNavigation() {
     
-    //Gets the time between this update and the previous one (seconds)
+    // Gets the time between this update and the previous one (seconds)
     float deltaTime = (float) (micros() - lastUpdateTime) * 1e-6; 
     lastUpdateTime = micros();
-    
-    //Calculates the turnInput and the forwardInput to go to targetPosition
-    Vector* targetPosition = getNextPosition();    
-    if(targetPosition != NULL)
-        getMovementInput(targetPosition, &forwardInput, &turnInput);    
-    free(targetPosition);
 
+    // If the robot is not already on its target
+    if(vectorDistSqr(target, position) > 1) {
+        
+        // Calculates the turnInput and the forwardInput to go to targetPosition
+        Vector* targetPosition = getNextPosition();    
+        if(targetPosition != NULL)
+            getMovementInput(targetPosition, &forwardInput, &turnInput);    
+        
+        free(targetPosition);
+    }
+    else {
+        forwardInput = 0;
+        turnInput = 0;
+    }
+    
     //Updates the position and rotation of the robot on the map
     float speed = forwardInput * robotSpeed/pixelLength * deltaTime;
     position->x += cos(rotation) * speed;

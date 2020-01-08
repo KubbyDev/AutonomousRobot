@@ -18,11 +18,10 @@ public class Network {
         queue = Volley.newRequestQueue(ctx);
     }
 
-    /** Requests a chunk of the intern map of the robot
-     * The answer should contain the lines 3*i to 3*i+2 of the map */
-    public static void requestMapChunk(final int chunkIndex) {
+    /** Requests the intern map of the robot */
+    public static void requestMap() {
 
-        String url = ESP_SERVER_URL + "/map_chunk?index=" + chunkIndex + "\n";
+        String url = ESP_SERVER_URL + "/map\n";
 
         System.out.println("Sent request " + url);
         // Request a string response from the provided URL.
@@ -30,7 +29,7 @@ public class Network {
                 new com.android.volley.Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        RobotMap.updateMapChunk(chunkIndex, response);
+                        RobotMap.updateMap(response);
                         System.out.println(response);
                     }
                 }, new com.android.volley.Response.ErrorListener() {

@@ -22,11 +22,16 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace(); }
                 while (true) {
-                    RobotMap.requestNextChunk();
-                    try { Thread.sleep(500); } catch (InterruptedException e) { e.printStackTrace(); }
+                    sleep(500);
                     RobotTransform.request();
-                    try { Thread.sleep(500); } catch (InterruptedException e) { e.printStackTrace(); }
                     ((MapView) findViewById(R.id.mapview)).updateDisplay();
+                    sleep(250);
+                    RobotMap.request();
+                    ((MapView) findViewById(R.id.mapview)).updateDisplay();
+                    sleep(250);
+                    RobotTransform.request();
+                    ((MapView) findViewById(R.id.mapview)).updateDisplay();
+
                 }
             }
         }).start();
@@ -44,5 +49,11 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+    }
+
+    private static void sleep(int millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) { e.printStackTrace(); }
     }
 }

@@ -6,8 +6,8 @@
 void findPath() {
 
     // This algorithm is not optimal (really not)
-    // But it uses only n integers, n being the number of pixels 
-    // of the lowresmap. So it fits my usage
+    // But it uses only n integers, n being the number of pixels of the lowresmap
+    // So it fits my usage because I don't have much memory to work with
 
     //Resets the pixels that are not walls in lowResMap (sets them to 254)
     for(int y = 0; y < LOWRES_SIZE; y++)
@@ -24,7 +24,7 @@ void findPath() {
     //List of all possible movements
     int offsets[] = {1,0, 0,1, -1,0, 0,-1, 1,1, -1,1, -1,-1, 1,-1};
 
-    //Calculates the distances to the target
+    //For all pixels in the map, calculates the distance to the target
     int changed = 1;
     while(changed) {
 
@@ -36,8 +36,10 @@ void findPath() {
                 for(int i = 0; i < 8; i++) {
                     int newX = x + offsets[2*i];
                     int newY = y + offsets[2*i +1];
+                    
                     if(inMatrixBounds(lowResMap, newX, newY) 
                     && getMatrixValue(lowResMap, newX, newY)+1 < getMatrixValue(lowResMap, x, y)) {
+                        
                         setMatrixValue(lowResMap, x, y, getMatrixValue(lowResMap, newX, newY)+1);
                         changed = 1;
                     }

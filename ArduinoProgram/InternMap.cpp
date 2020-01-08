@@ -151,11 +151,8 @@ void updateInternMap() {
 
     Vector* currentPixel = vectorCopy(position);
 
-    //Serial.print("Position: x=");Serial.print(currentPixel->x);Serial.print(",y=");Serial.println(currentPixel->y);
-
     //Empties all the pixels between the robot and the hit point
     for(int i = 0; i <= hitDistance; i++) {
-        //Serial.print("Current: x=");Serial.print(currentPixel->x);Serial.print(",y=");Serial.println(currentPixel->y);
         turnPixelOff(round(currentPixel->x), round(currentPixel->y));
         vectorAdd(currentPixel, wallDir);
     }
@@ -165,7 +162,6 @@ void updateInternMap() {
     vectorMult(wallDir, hitDistance);
     vectorAdd(currentPixel, wallDir);
     turnPixelOn(round(currentPixel->x), round(currentPixel->y));
-    //Serial.print("Hit: x=");Serial.print(currentPixel->x);Serial.print(",y=");Serial.println(currentPixel->y);
 
     free(wallDir);
     free(currentPixel);

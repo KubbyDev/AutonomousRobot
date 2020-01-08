@@ -5,7 +5,6 @@ public class RobotMap {
 
     public static int SIZE = 72;
     private static boolean[] values = new boolean[SIZE * SIZE];
-    private static int nextChunkIndex = 0;
 
     public static void fill(boolean val) {
         for(int i = 0; i < SIZE*SIZE; i++)
@@ -20,26 +19,20 @@ public class RobotMap {
         values[y*SIZE + x] = val;
     }
 
-    public static void requestNextChunk() {
-        Network.requestMapChunk(nextChunkIndex);
-        nextChunkIndex = (nextChunkIndex+1)%24;
+    public static void request() {
+        Network.requestMap();
     }
 
-    public static void updateMapChunk(int chunkIndex, String receivedData) {
+    public static void updateMap(String receivedData) {
 
-        //Gets all the byte values. Each values takes 3 digits and their are 3 lines of 9 bytes
-        int[] bytes = new int[3*9];
-        for(int i = 0; i < 3*9; i++)
-            bytes[i] = Integer.parseInt(receivedData.substring(3*i, 3*i+3));
-
-        int offset = chunkIndex * 3 * 72;
-        for(int i = 0; i < 3*9; i++) {
-
-            int b = bytes[i];
-            for(int valIndex = 7; valIndex >= 0; valIndex--) {
-                values[offset + i*8 + valIndex] = b%2 == 1;
-                b /= 2;
-            }
+        // For each hexadecimal value
+        for(int i = 0; i < 72*9*2; i++) {
+            // Updates the 4 pixels this value represents
+            int value = Integer.parseInt(receivedData.charAt(i)+"", 16);
+            values[i*4    ] =  value   /8 == 1;
+            values[i*4 + 1] = (value%8)/4 == 1;
+            values[i*4 + 2] = (value%4)/2 == 1;
+            values[i*4 + 3] =  value%2    == 1;
         }
     }
 }

@@ -4,7 +4,11 @@
 #include <Arduino.h>
 #include <stdlib.h>
 
-#define SERIALOBJECT Serial3 //The serial object used to communicate with the ESP8266
+//The serial object used to communicate with the ESP8266
+//You might have to replace it by a SoftwareSerial if you use a separate ESP
+#define SERIALOBJECT Serial3
+
+// Helper functions ----------------------------------------------------------------------
 
 // Reads Serial input until endCharacter is reached, 
 // then returns the int represented by the read input
@@ -26,32 +30,44 @@ int readIntFromSerial(char endCharacter) {
     return result;
 }
 
+// Prints an error message and flushes the incomming serial data
 void readingError() {
     Serial.println("Error reading int from serial");
     while(SERIALOBJECT.available())
         SERIALOBJECT.read();
 }
 
-// Sends a chunk of the intern map to the ESP8266
-// A chunk contains the data for lines 3*index to 3*(index+1)-1
-void sendMapChunkToEsp(int chunkIndex) {
+// Converts an number from 0 to 15 to its hexadecimal representation
+char toHex(unsigned char i) {
+    return i < 10 ? i+'0' : i-10+'A';
+}
 
-    char* chunk = (char*) malloc(sizeof(char)*3*9*3 +1);
-    int firstByte = chunkIndex*9*3;
-    for(int i = 0; i < 3*9; i++) {
-        unsigned char uc = bm_getByte(internMap, i + firstByte);
-        //Serial.print(uc);
-        chunk[i*3 +0] = '0' + uc/100;
-        chunk[i*3 +1] = '0' + (uc%100)/10;
-        chunk[i*3 +2] = '0' + uc%10;
+// Requests handling ---------------------------------------------------------------------
+
+// Sends the entire map to the ESP through Serial
+// The ESP has to be reading the data while it's being written because the
+// Serial buffer can only hold 256 bytes on the Mega and less on the Uno
+void sendMapToEsp() {
+    
+    for(int i = 0; i < 9*72; i++) {
+        
+        // Gets the number from the map
+        unsigned char uc = bm_getByte(internMap, i);
+        
+        // Transmits the number in hexadecimal form
+        SERIALOBJECT.write(toHex(uc/16));
+        SERIALOBJECT.write(toHex(uc%16));
+        
+        // Waits for the ESP to read the data
+        if(i%16 == 0)
+            SERIALOBJECT.flush();
     }
-
-    chunk[3*9*3] = '\n';
-    SERIALOBJECT.write(chunk, 3*9*3+1);
-    free(chunk);
+    SERIALOBJECT.write('\n');
 }
 
 // Sends the position and the rotation of the robot to the ESP8266
+// The response looks like this: 0.000   ;0.000   ;0.000   
+// TODO: Do something cleaner
 void sendPositionToEsp() {
 
     char* response = (char*) malloc(sizeof(char)*(3*15 +3));
@@ -74,6 +90,8 @@ void sendPositionToEsp() {
     free(response);
 }
 
+// Main functions ------------------------------------------------------------------------
+
 void initCommunication() {
     SERIALOBJECT.begin(250000);
 }
@@ -88,7 +106,6 @@ void updateCommunication() {
     delay(10);
 
     char commandType = SERIALOBJECT.read();
-    //Serial.print("Got a message");Serial.println(commandType);
     // If a new target position is received, updates it
     // Target position update commands are of this form: T<POSX>,<POSY>\n
     if(commandType == 'T') {
@@ -100,12 +117,13 @@ void updateCommunication() {
         }
         vectorSet(target, x, y);
         needsPathUpdate = 1;
-        //Serial.print("New Target: ");Serial.print(target->x);Serial.print(", ");Serial.print(target->y);Serial.println();
     }
-    // If a map chunk is requested, sends it
-    // Map chunk requests are of this form: M<CHUNKINDEX>\n
-    if(commandType == 'M')
-        sendMapChunkToEsp(readIntFromSerial('\n'));
+    // If the map is requested, sends it
+    // Map requests are of this form: M\n
+    if(commandType == 'M') {
+        sendMapToEsp();
+        SERIALOBJECT.read(); // Consumes the '\n'    
+    }
     // If the position is requested, sends it
     // Position requests are of this form: P\n
     if(commandType == 'P') {

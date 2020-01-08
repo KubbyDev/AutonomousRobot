@@ -12,5 +12,6 @@ void vectorAdd(Vector* destination, Vector* other);
 void vectorMult(Vector* destination, float k);
 Vector* vectorCopy(Vector* source);
 Vector* vectorfromRot(float angle);
+float vectorDistSqr(Vector* a, Vector* b);
 
 #endif //VECTOR_H

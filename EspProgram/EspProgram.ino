@@ -1,12 +1,28 @@
+// -------------------------------------------------------------------------------------------------
+//
+// This code is meant to control the ESP8266. Functionnalities:
+// - Hosts the Wifi network (ssid: MappingRobot, open)
+// - Receives HTTP requests and checks if they are correct
+// - Communicates with the Arduino via Serial to answer or serve requests
+//
+// Requests:
+// - /map: Returns the intern map stored on the Arduino in the form 
+// of hexadecimal digits (one digit for 4 pixels)
+// - /set_target?x=000&y=000: Changes the goal location of the robot. 
+// Numbers are in intern map coordinates
+// - /position: Returns the expected position and rotation of the robot
+// in its intern map.
+//
+// -------------------------------------------------------------------------------------------------
+
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 
 ESP8266WebServer server(80);
-const char* ssid = "MappingRobot";
+const char* ssid = "MappingRobot"; //Name of the Wifi network. Connect to it to send HTTP requests
 
-#define SERIALOBJECT Serial
-#define RESPONSE_TIMEOUT 1000
+#define SERIALOBJECT Serial //The serial object used to communicate with the Arduino
 
 //Checks if the argument is given and is a 1-3 digits positive integer
 int isArgumentCorrect(String argument) {
@@ -19,58 +35,46 @@ int isArgumentCorrect(String argument) {
     return 1;
 }
 
-//Waits for the Arduino to answer to a request
-//Returns 1 if the answer was received, 0 otherwise
-int waitForArduino() {
+//Reads data from the Arduino while it is writing it
+String receiveData() {
+
+    String res = "";
+
+    //Waits for the first character
+    while(!SERIALOBJECT.available());
     
-    int i = 0;
-    //Waits for the Arduino to start answering
-    while(!SERIALOBJECT.available()) {
-        i++;
-        if(i > RESPONSE_TIMEOUT) {
-            server.send(500, "text/plain", "The ESP recieved the request but the Arduino didn't respond");
-            return 0;  
-        }
-        delay(1);
-    }
-    
-    //Waits for the Arduino to finish writing
-    delay(50);
-    
-    return 1;
-}
-
-// Returns the wanted chunk of the intern map (cells are grouped by 8 and sent as the decimal
-// representation of these 8 bits. So each group is encoded as 3 characters from 0 to 9)
-// Query is of this form: /map_chunk?index=000
-void getMapChunk() { 
-
-    // Stops if the argument is not given or not a number
-    if(!isArgumentCorrect("index")) {
-        server.send(400, "text/plain", "Bad arguments. Query is of this form: /map_chunk?index=000");
-        return;
-    }
-    // Sends a request to the Arduino to get the map chunk
-    String message = "M" + server.arg("index") + "\n";
-    SERIALOBJECT.write(message.c_str(), message.length());
-
-    // Waits for the Arduino to respond
-    if(!waitForArduino())
-        return;
-
-    // Reads and sends the response of the Arduino
-    String res = "";        
+    //Reads the stream until a \n is found
     char next = SERIALOBJECT.read();
-    while(SERIALOBJECT.available() && next != '\n') {
+    while(next != '\n') {
+        
         res += next;
+        
+        //Waits for the next character
+        while(!SERIALOBJECT.available());
         next = SERIALOBJECT.read();
     }
+
+    return res;
+}
+
+// Returns the intern map (cells are grouped by 8 and sent as the hexadecimal
+// representation of these 8 bits. So each group is encoded as 2 characters from 0 to F)
+// Query is of this form: /map
+void getMap() { 
+
+    // Sends a request to the Arduino to get the map 
+    SERIALOBJECT.write("M\n", 2);
+
+    // Gets the response from the Arduino
+    String res = receiveData();
+
     server.send(200, "text/plain", res);
 }
 
 // Sets the new target position of the robot
 // Query is of this form: /set_target?x=000&y=000
 void setTarget() {
+    
     // Stops if one of the argument is not given or not a number
     if(!isArgumentCorrect("x") || !isArgumentCorrect("y")) {
         server.send(400, "text/plain", "Bad arguments. Query is of this form: /set_target?x=000&y=000");
@@ -85,27 +89,20 @@ void setTarget() {
 // Returns the position and rotation of the robot
 // Query is of this form: /position
 void getPosition() {
+    
     // Sends the command to the Arduino
     SERIALOBJECT.write("P\n", 2);
-    
-    // Waits for the Arduino to respond
-    if(!waitForArduino())
-        return;
 
-    // Reads and sends the response of the Arduino
-    String res = "";        
-    char next = SERIALOBJECT.read();
-    while(SERIALOBJECT.available() && next != '\n') {
-        res += next;
-        next = SERIALOBJECT.read();
-    }
+    // Gets the response from the Arduino
+    String res = receiveData();
+    
     server.send(200, "text/plain", res);
 }
 
 void setup() {
 
     SERIALOBJECT.begin(250000);
-    IPAddress local_IP(192,168,0,20);
+    IPAddress local_IP(192,168,0,20); //Connect to this IP to send HTTP requests
     IPAddress gateway(192,168,0,1);
     IPAddress subnet(255,255,255,0);
     WiFi.softAPConfig(local_IP, gateway, subnet);
@@ -113,7 +110,7 @@ void setup() {
     WiFi.softAPIP();
 
     WiFi.softAP(ssid);
-    server.on("/map_chunk", getMapChunk);
+    server.on("/map", getMap);
     server.on("/set_target", setTarget);
     server.on("/position", getPosition);
     server.begin();

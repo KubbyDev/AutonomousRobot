@@ -19,8 +19,6 @@ void updateSonar() {
     if(micros() - lastTriggerTime < 25000)
         return;
 
-    //lastDistance = (micros()/100000)%100;
-
     // Sends a 10 ms pulse
     digitalWrite(TRIGGER_PIN, LOW);
     delayMicroseconds(5);  
@@ -44,9 +42,6 @@ void onEchoReceived() {
     // Saves the calculated distance if it is relevant (some measures are wrong)
     if(distance > 0.1f)
         lastDistance = distance;
-
-    //Serial.print("Sonar (cm): ");
-    //Serial.println(distance);
 }
 
 void initSonar() {

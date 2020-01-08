@@ -34,3 +34,9 @@ Vector* vectorCopy(Vector* source) {
 Vector* vectorfromRot(float angle) {
     return newVector(cos(angle), sin(angle));
 }
+
+float vectorDistSqr(Vector* a, Vector* b) {
+    float x = a->x - b->x;
+    float y = a->y - b->y;
+    return x*x + y*y;
+}
