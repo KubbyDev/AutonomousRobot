@@ -1,1 +1,0 @@
-This part contains independant folders to test hardware before putting everything together

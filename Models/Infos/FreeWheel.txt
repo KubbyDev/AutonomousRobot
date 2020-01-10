@@ -1,0 +1,4 @@
+4 holes drawing a rectangle
+Holes Diameter 4 mm
+Distance between top holes: 2.95 cm
+Distance between right holes: 2.35 cm

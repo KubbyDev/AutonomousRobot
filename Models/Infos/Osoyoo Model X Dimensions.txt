@@ -1,0 +1,4 @@
+4 holes making a rectangle
+Diameter 4 mm
+Distance between top holes centers: 4.1 cm
+Distance between right holes centers: 3.7 cm

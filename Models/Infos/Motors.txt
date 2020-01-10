@@ -1,0 +1,3 @@
+2 Holes
+Diameter 3mm
+Distance between the centers: 1.75 cm

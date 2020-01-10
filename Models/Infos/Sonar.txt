@@ -1,0 +1,3 @@
+2 holes
+Diameter = 4 mm
+Distance between the centers: 1.4 cm
