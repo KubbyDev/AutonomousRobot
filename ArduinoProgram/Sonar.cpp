@@ -4,10 +4,6 @@
 #include <Arduino.h>
 #include <PinChangeInterrupt.h> //PinChangeInterrupt by NicoHood v1.2.6
 
-//Powering: 5V. Warning, the echo pin must be a PCINT pin
-#define TRIGGER_PIN 11
-#define ECHO_PIN 12
-
 #define SOUND_SPEED 0.03403f    // in cm/us
 
 unsigned long lastTriggerTime = micros();

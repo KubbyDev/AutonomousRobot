@@ -96,8 +96,8 @@ class InternMap {
     isPixelOff(x, y) {
         x *= ControlAlgorithm.LOWRESMAP_SIZERATIO;
         y *= ControlAlgorithm.LOWRESMAP_SIZERATIO;
-        for(let j = -1; j <= ControlAlgorithm.LOWRESMAP_SIZERATIO+1; j++)
-            for(let i = -1; i <= ControlAlgorithm.LOWRESMAP_SIZERATIO+1; i++)
+        for(let j = -1; j < ControlAlgorithm.LOWRESMAP_SIZERATIO+1; j++)
+            for(let i = -1; i < ControlAlgorithm.LOWRESMAP_SIZERATIO+1; i++)
                 if(inBoundsReal(x+i, y+j) && (this.matrix.getValue(x+i, y+j) === true))
                     return false;
         return true;
