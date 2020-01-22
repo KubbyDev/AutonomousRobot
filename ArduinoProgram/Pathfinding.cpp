@@ -3,7 +3,12 @@
 
 #include <stdlib.h>
 
+#include <Arduino.h>
+
+
 void findPath() {
+
+    //Serial.println("New path calculation");
 
     // This algorithm is not optimal (really not)
     // But it uses only n integers, n being the number of pixels of the lowresmap
@@ -23,23 +28,24 @@ void findPath() {
 
     //List of all possible movements
     int offsets[] = {1,0, 0,1, -1,0, 0,-1, 1,1, -1,1, -1,-1, 1,-1};
-
+    
     //For all pixels in the map, calculates the distance to the target
+    //Continues the calculation until there are pixels that have not been calculated
     int changed = 1;
     while(changed) {
 
         changed = 0;
         for(int y = 0; y < LOWRES_SIZE; y++) {
             for(int x = 0; x < LOWRES_SIZE; x++) {
+
                 if(getMatrixValue(lowResMap, x, y) == 255)
                     continue;
+                // For all pixels around this pixel
                 for(int i = 0; i < 8; i++) {
                     int newX = x + offsets[2*i];
                     int newY = y + offsets[2*i +1];
-                    
                     if(inMatrixBounds(lowResMap, newX, newY) 
                     && getMatrixValue(lowResMap, newX, newY)+1 < getMatrixValue(lowResMap, x, y)) {
-                        
                         setMatrixValue(lowResMap, x, y, getMatrixValue(lowResMap, newX, newY)+1);
                         changed = 1;
                     }

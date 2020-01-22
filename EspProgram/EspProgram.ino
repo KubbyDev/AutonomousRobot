@@ -19,12 +19,31 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 
+#define SERIALOBJECT Serial // The serial object used to communicate with the Arduino
+#define MAP_SIZE 72 // Size of the main map (should be the same here, in ArduinoProgram/Data.h and in the smarphone app)
+#define TIMEOUT 1000 // Maximum waiting time for incomming data from the Arduino in milliseconds
+
+// Errors that can be encoutered while communicating with the Arduino
+#define SERIAL_NO_RESPONSE 1
+#define SERIAL_RESPONSE_NOT_FINISHED 2
+#define SERIAL_RESPONSE_TOO_LONG 3
+
+// Ids of the requests. Used by handleError
+#define ID_MAP 1
+#define ID_SET_TARGET 2
+#define ID_POSITION 3
+
 ESP8266WebServer server(80);
-const char* ssid = "MappingRobot"; //Name of the Wifi network. Connect to it to send HTTP requests
+const char* ssid = "AutonomousRobot"; // Name of the Wifi network. Connect to it to send HTTP requests
 
-#define SERIALOBJECT Serial //The serial object used to communicate with the Arduino
+// Helper functions --------------------------------------------------------------------------------
 
-//Checks if the argument is given and is a 1-3 digits positive integer
+// Converts an number from 0 to 15 to its hexadecimal representation
+char toHex(int i) {
+    return i < 10 ? i+'0' : i-10+'A';
+}
+
+// Checks if the argument is given and is a 1-3 digits positive integer
 int isArgumentCorrect(String argument) {
     String value = server.arg(argument);
     if(!value)
@@ -35,27 +54,69 @@ int isArgumentCorrect(String argument) {
     return 1;
 }
 
-//Reads data from the Arduino while it is writing it
-String receiveData() {
+// Reads data from the Arduino while it is writing it
+// The buffer in parameter should be big enough to contain the response without \n
+// For example if the response is expected to be TEST\n it should be of length 4.
+// The return value is an error code (see the to of this file for more info)
+int receiveData(int* buffer, int bufferLength) {
 
-    String res = "";
-
-    //Waits for the first character
-    while(!SERIALOBJECT.available());
+    long startTime = millis();
     
-    //Reads the stream until a \n is found
-    char next = SERIALOBJECT.read();
+    // Waits for the first character
+    while(!SERIALOBJECT.available())
+        if(millis() - startTime > TIMEOUT)
+            return SERIAL_NO_RESPONSE;
+    
+    // Reads the stream until a \n is found
+    int next = SERIALOBJECT.read();
     while(next != '\n') {
         
-        res += next;
+        // Prevents buffer overflows
+        if(bufferLength <= 0)
+            return SERIAL_RESPONSE_TOO_LONG;
+
+        *buffer = next;
+        buffer++;
+        bufferLength--;
         
-        //Waits for the next character
-        while(!SERIALOBJECT.available());
+        // Waits for the next character
+        while(!SERIALOBJECT.available())
+            if(millis() - startTime > TIMEOUT)
+                return SERIAL_RESPONSE_NOT_FINISHED;
+            
         next = SERIALOBJECT.read();
     }
 
-    return res;
+    return 0;
 }
+
+// Handles an error that occured while communicating with the Arduino
+void handleError(int errorCode, int requestID) {
+
+    int code;
+    String message = "Error while processing ";
+    if(requestID == ID_MAP) message += "/map request: ";
+    if(requestID == ID_SET_TARGET) message += "/set_target request: ";
+    if(requestID == ID_POSITION) message += "/position request: ";
+
+    // Serial communication errors
+    if(errorCode == SERIAL_NO_RESPONSE) {
+        code = 500;
+        message += "The Arduino didn't respond. ";
+    }
+    if(errorCode == SERIAL_RESPONSE_NOT_FINISHED) {
+        code = 500;
+        message += "The Arduino responded but an error occured while receiving it. ";
+    }
+    if(errorCode == SERIAL_RESPONSE_TOO_LONG) {
+        code = 500;
+        message += "The buffer used to collect the response was too small. ";
+    }
+    
+    server.send(code, "text/plain", message);  
+}
+
+// Request handlers --------------------------------------------------------------------------------
 
 // Returns the intern map (cells are grouped by 8 and sent as the hexadecimal
 // representation of these 8 bits. So each group is encoded as 2 characters from 0 to F)
@@ -66,9 +127,25 @@ void getMap() {
     SERIALOBJECT.write("M\n", 2);
 
     // Gets the response from the Arduino
-    String res = receiveData();
+    int* res = (int*) malloc(sizeof(int) * MAP_SIZE*MAP_SIZE/8);
+    int error = receiveData(res, MAP_SIZE*MAP_SIZE/8);
 
-    server.send(200, "text/plain", res);
+    // Sends an error message if there is an error
+    if(error != 0) {
+        handleError(error, ID_MAP);
+        free(res);
+        return;
+    }
+
+    // Formats the received data to sends it back in the HTTP response
+    String result = "";
+    for(int i = 0; i < MAP_SIZE*MAP_SIZE/8; i++) {
+        result += res[i]/16;
+        result += res[i]%16;
+    }
+
+    server.send(200, "text/plain", result);
+    free(res);
 }
 
 // Sets the new target position of the robot
@@ -77,7 +154,7 @@ void setTarget() {
     
     // Stops if one of the argument is not given or not a number
     if(!isArgumentCorrect("x") || !isArgumentCorrect("y")) {
-        server.send(400, "text/plain", "Bad arguments. Query is of this form: /set_target?x=000&y=000");
+        server.send(422, "text/plain", "Bad arguments. Query is of this form: /set_target?x=000&y=000");
         return;
     }
     // Sends the numbers to the Arduino
@@ -93,11 +170,30 @@ void getPosition() {
     // Sends the command to the Arduino
     SERIALOBJECT.write("P\n", 2);
 
-    // Gets the response from the Arduino
-    String res = receiveData();
-    
-    server.send(200, "text/plain", res);
+     // Gets the response from the Arduino
+    int* res = (int*) malloc(sizeof(int) * 3*15 +2);
+    int error = receiveData(res, 3*15 +2);
+
+    // Sends an error message if there is an error
+    if(error != 0) {
+        handleError(error, ID_POSITION);
+        free(res);
+        return;
+    }
+
+    String result = "";
+    for(int i = 0; i < 3*15 +2; i++)
+        result += (char) res[i];
+
+    server.send(200, "text/plain", result);
+    free(res);
 }
+
+void notFound() {
+    server.send(404, "text/plain", server.uri() + ": Not found");
+}
+
+// Main functions ----------------------------------------------------------------------------------
 
 void setup() {
 
@@ -113,6 +209,7 @@ void setup() {
     server.on("/map", getMap);
     server.on("/set_target", setTarget);
     server.on("/position", getPosition);
+    server.onNotFound(notFound);
     server.begin();
 }
 

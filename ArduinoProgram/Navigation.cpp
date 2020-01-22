@@ -80,9 +80,12 @@ void updateNavigation() {
     float deltaTime = (float) (micros() - lastUpdateTime) * 1e-6; 
     lastUpdateTime = micros();
 
-    // If the robot is not already on its target
-    if(vectorDistSqr(target, position) > 1) {
-        
+    // Checks if the robot is already on its target
+    int alreadyOnTarget = vectorDistSqr(target, position) <= 1;
+    //Serial.print("Distance: ");Serial.println(vectorDistSqr(target, position));
+
+    // If it is not, calculates the new movement inputs
+    if( ! alreadyOnTarget) { 
         // Calculates the turnInput and the forwardInput to go to targetPosition
         Vector* targetPosition = getNextPosition();    
         if(targetPosition != NULL)
@@ -103,7 +106,7 @@ void updateNavigation() {
     clampAngle(&rotation);
     
     //Updates the path if necessary
-    if(needsPathUpdate)
+    if(needsPathUpdate && !alreadyOnTarget)
         findPath();
 
     //Updates the internMap and the lowResMap according to the data of the sonar

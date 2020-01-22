@@ -25,8 +25,8 @@ void setup() {
     // Empties the internMap and the low resolution map
     bm_clear(internMap);
     clearMatrix(lowResMap);
-    vectorSet(position, 36, 36);
-    vectorSet(target, 36, 36);
+    vectorSet(position, MAP_SIZE/2, MAP_SIZE/2);
+    vectorSet(target, MAP_SIZE/2, MAP_SIZE/2);
 
     // Initialises the motors and the sonar
     initMotors();
@@ -41,7 +41,7 @@ void loop() {
     // Updates the communication with the ESP8266
     // (Retrives or sends information to the user if necessary)
     updateCommunication();
-    
+
     // Updates the control algorithm
     // (Changes the values in Data.cpp)
     updateNavigation();

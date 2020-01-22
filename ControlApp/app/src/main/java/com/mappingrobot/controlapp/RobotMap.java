@@ -26,7 +26,7 @@ public class RobotMap {
     public static void updateMap(String receivedData) {
 
         // For each hexadecimal value
-        for(int i = 0; i < 72*9*2; i++) {
+        for(int i = 0; i < SIZE*SIZE/4; i++) {
             // Updates the 4 pixels this value represents
             int value = Integer.parseInt(receivedData.charAt(i)+"", 16);
             values[i*4    ] =  value   /8 == 1;

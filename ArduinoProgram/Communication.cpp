@@ -4,63 +4,91 @@
 #include <Arduino.h>
 #include <stdlib.h>
 
-//The serial object used to communicate with the ESP8266
-//You might have to replace it by a SoftwareSerial if you use a separate ESP
+// The serial object used to communicate with the ESP8266
+// You might have to replace it by a SoftwareSerial if you use a separate ESP
 #define SERIALOBJECT Serial3
+
+// The maximum time between the moment when a character is received 
+// and the moment when the end of the message is received
+#define TIMEOUT 100
 
 // Helper functions ----------------------------------------------------------------------
 
-// Reads Serial input until endCharacter is reached, 
-// then returns the int represented by the read input
-// Returns -1 if the number contains more than 3 digits (error)
-int readIntFromSerial(char endCharacter) {
-    char* res = (char*) malloc(sizeof(char)*10);
-    char next = SERIALOBJECT.read();
-    int index = 0;
-    while(next != endCharacter) {
-        if(index == 3)
-            return -1;
-        res[index] = next;
-        index++;
+// Reads an int from the str and returns it
+// str gets automaticaly moved to the end of the str +1 char
+// ex: "12 78" -> "78"
+int readInt(char** str, char endCharacter) {
+
+    char* s = *str;
+
+    //Puts a null terminator at the end so the atoi function works
+    int separatorPos = 0;
+    while(s[separatorPos] != 0 && s[separatorPos] != endCharacter)
+        separatorPos++;
+    char separator = s[separatorPos];
+    s[separatorPos] = 0;
+
+    int res = atoi(s);
+
+    //Puts back the separator and moves the str pointer
+    s[separatorPos] = separator;
+    *str = s+separatorPos+1;
+
+    return res;
+}
+
+// Reads incomming data from the esp and writes it in buffer
+// If an error occurs (like a timeout), the function returns 0, otherwise 1
+int readDataFromEsp(char* buffer) {
+    
+    int len = 0;
+    long startTime = millis();
+    
+    // Reads the stream until a \n is found (includes the \n)
+    int next = SERIALOBJECT.read();
+    while(next != '\n') {
+
+        // If the length is more than 8 then there is a problem so we empty the buffer and abort
+        if(len >= 8) {
+            while(SERIALOBJECT.available())
+                SERIALOBJECT.read();
+            return 0;
+        }
+
+        buffer[len] = next;
+        len++;
+        
+        // Waits for the next character. Aborts if the timeout is reached
+        while(!SERIALOBJECT.available())
+            if(millis() - startTime > TIMEOUT)
+                return 0;
+            
         next = SERIALOBJECT.read();
-    }
-    res[index] = 0;
-    int result = atoi(res);
-    free(res);
-    return result;
-}
+    }   
 
-// Prints an error message and flushes the incomming serial data
-void readingError() {
-    Serial.println("Error reading int from serial");
-    while(SERIALOBJECT.available())
-        SERIALOBJECT.read();
-}
+    buffer[len] = '\n';
 
-// Converts an number from 0 to 15 to its hexadecimal representation
-char toHex(unsigned char i) {
-    return i < 10 ? i+'0' : i-10+'A';
+    return 1;
 }
 
 // Requests handling ---------------------------------------------------------------------
 
 // Sends the entire map to the ESP through Serial
 // The ESP has to be reading the data while it's being written because the
-// Serial buffer can only hold 256 bytes on the Mega and less on the Uno
+// Serial buffer can only hold 256 bytes on the Mega and 64 on the Uno
 void sendMapToEsp() {
     
-    for(int i = 0; i < 9*72; i++) {
+    for(int i = 0; i < MAP_SIZE*MAP_SIZE/8; i++) {
         
         // Gets the number from the map
         unsigned char uc = bm_getByte(internMap, i);
-        
-        // Transmits the number in hexadecimal form
-        SERIALOBJECT.write(toHex(uc/16));
-        SERIALOBJECT.write(toHex(uc%16));
-        
+
         // Waits for the ESP to read the data
         if(i%16 == 0)
             SERIALOBJECT.flush();
+        
+        // Transmits the number in hexadecimal form
+        SERIALOBJECT.write(uc);
     }
     SERIALOBJECT.write('\n');
 }
@@ -102,32 +130,33 @@ void updateCommunication() {
     if(! SERIALOBJECT.available())
         return;
 
-    // Waits a bit just to be sure that the data has been written entirely
-    delay(10);
+    // If something was received, reads it entirely
+    char* buffer = (char*) malloc(sizeof(char) * 9); // The size is the biggest message possible (T<POSX>,<POSY>\n)
+    char* bufferStart = buffer;
+    int success = readDataFromEsp(buffer);
+    if(!success) {
+        free(buffer);
+        return;
+    }
 
-    char commandType = SERIALOBJECT.read();
+    char commandType = buffer[0];
+    buffer++;
     // If a new target position is received, updates it
     // Target position update commands are of this form: T<POSX>,<POSY>\n
     if(commandType == 'T') {
-        int x = readIntFromSerial(',');
-        int y = readIntFromSerial('\n');
-        if(x == -1 || y == -1) {
-            readingError();
-            return;
-        }
+        int x = readInt(&buffer, ',');
+        int y = readInt(&buffer, '\n');
         vectorSet(target, x, y);
         needsPathUpdate = 1;
     }
     // If the map is requested, sends it
     // Map requests are of this form: M\n
-    if(commandType == 'M') {
+    if(commandType == 'M')
         sendMapToEsp();
-        SERIALOBJECT.read(); // Consumes the '\n'    
-    }
     // If the position is requested, sends it
     // Position requests are of this form: P\n
-    if(commandType == 'P') {
-        sendPositionToEsp();
-        SERIALOBJECT.read(); // Consumes the '\n'    
-    }
+    if(commandType == 'P')
+        sendPositionToEsp();  
+
+    free(bufferStart);
 }

@@ -23,11 +23,20 @@ void turnPixelOn(unsigned int x, unsigned int y) {
     // The new pixel will set a wall on every pixel on the lowResMap it touches
     for(int j = -1; j <= 1; j++) {
         for(int i = -1; i <= 1; i++) {
+            
             int lrX = (x+i)/3;
             int lrY = (y+j)/3;
             if(inMatrixBounds(lowResMap, lrX, lrY) && (getMatrixValue(lowResMap, lrX, lrY) != 255)) {
+
+                //Serial.print("Turned on ");Serial.print(lrX);Serial.print(" ");Serial.println(lrY);
                 setMatrixValue(lowResMap, lrX, lrY, 255);
-                needsPathUpdate = 1; //TODO: Seulement si le pixel etait sur le chemin
+                
+                // If the value of the pixel is greater than the value of the pixel at the position
+                // of the robot, this pixel has no chance to be on the path, so we don't update the path
+                if(getMatrixValue(lowResMap, lrX, lrY) < getMatrixValue(lowResMap, (position->x)/3, (position->y)/3)) {
+                    //Serial.print("Update path because pixel on ");Serial.print(lrX);Serial.print(" ");Serial.println(lrY);
+                    needsPathUpdate = 1;
+                }
             }
         }
     }
@@ -123,18 +132,17 @@ void turnPixelOff(unsigned int x, unsigned int y) {
 
         // If the pixel is not in the matrix bounds or already off,
         // it will not have to be checked
-        if(!inMatrixBounds(lowResMap, lrX, lrY) || (getMatrixValue(lowResMap, lrY, lrX) != 255)) {
-            //Serial.print("not checked ");Serial.println(getMatrixValue(lowResMap, lrY, lrX));
+        if(!inMatrixBounds(lowResMap, lrX, lrY) || (getMatrixValue(lowResMap, lrX, lrY) != 255)) {
+            //Serial.print("not checked ");Serial.println(getMatrixValue(lowResMap, lrX, lrY));
             i += 2;
             continue;
         }
 
         if(isPixelOff(lrX, lrY)) {
-            //Serial.print("SET OFF ");Serial.print(lrX);Serial.print(" ");Serial.println(lrY);
             setMatrixValue(lowResMap, lrX, lrY, 254);
+            //Serial.print("Update path because pixel off ");Serial.print(lrX);Serial.print(" ");Serial.println(lrY);
             needsPathUpdate = 1;
         }
-        //else Serial.println("not set off");
 
         i += 2;
     }
@@ -151,8 +159,9 @@ void updateInternMap() {
 
     Vector* currentPixel = vectorCopy(position);
 
-    //Empties all the pixels between the robot and the hit point
-    for(int i = 0; i <= hitDistance; i++) {
+    // Empties all the pixels between the robot and the hit point (with a margin of 1 to avoid
+    // redoing expensive path finding just because a pixel blinked)
+    for(int i = 0; i < hitDistance-1; i++) {
         turnPixelOff(round(currentPixel->x), round(currentPixel->y));
         vectorAdd(currentPixel, wallDir);
     }
@@ -162,6 +171,8 @@ void updateInternMap() {
     vectorMult(wallDir, hitDistance);
     vectorAdd(currentPixel, wallDir);
     turnPixelOn(round(currentPixel->x), round(currentPixel->y));
+
+    //Serial.print("Turned on ");Serial.print(round(currentPixel->x));Serial.print(" ");Serial.println(round(currentPixel->y));
 
     free(wallDir);
     free(currentPixel);

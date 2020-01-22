@@ -1,9 +1,11 @@
-#define IN1  7   //K1、K2 motor direction
-#define IN2  8     //K1、K2 motor direction
-#define IN3  9    //K3、K4 motor direction
-#define IN4  10   //K3、K4 motor direction
-#define ENA  5    // Needs to be a PWM pin to be able to control motor speed ENA
-#define ENB  6    // Needs to be a PWM pin to be able to control motor speed ENA
+#define IN1  2
+#define IN2  3 
+#define IN3  5   
+#define IN4  6
+#define ENA  9    // Needs to be a PWM pin to be able to control motor speed ENA
+#define ENB  10   // Needs to be a PWM pin to be able to control motor speed ENA
+
+// Speed control ------------------------------------------
 
 void clamp(int* x, int min, int max) {
   if(*x < min) *x = min;
@@ -13,40 +15,44 @@ void clamp(int* x, int min, int max) {
 //Sets the speed of each motor (an integer between -255 and 255)
 void setSpeed(int leftSpeed, int rightSpeed) {
 
-  //The speed shoud always be between -255 and 255
+  //The speed should always be between -255 and 255
   clamp(&leftSpeed, -255, 255);
   clamp(&rightSpeed, -255, 255);
 
   //Sets the speed for each motor
-  analogWrite(ENA, abs(leftSpeed));
-  analogWrite(ENB, abs(rightSpeed));
+  analogWrite(ENA, abs(rightSpeed));
+  analogWrite(ENB, abs(leftSpeed));
 
   //Sets the direction of rotation for each motor
-  digitalWrite(IN1, leftSpeed > 0);
-  digitalWrite(IN2, leftSpeed < 0);
-  digitalWrite(IN3, rightSpeed > 0);
-  digitalWrite(IN4, rightSpeed < 0);
+  digitalWrite(IN1, rightSpeed > 0);
+  digitalWrite(IN2, rightSpeed < 0);
+  digitalWrite(IN3, leftSpeed > 0);
+  digitalWrite(IN4, leftSpeed < 0);
 }
 
 // High level control functions -----------------------------
 
-// With corrections due to imperfections
-// in the cardboard robot and bad cabling
+#define LEFT_MOTOR_SPEED 65
+#define RIGHT_MOTOR_SPEED 75
 
 void forward() {
-  setSpeed(-255, -255);
+  setSpeed(   LEFT_MOTOR_SPEED,   RIGHT_MOTOR_SPEED);
 }
 
 void backward() {
-  setSpeed(255, 255);
+  setSpeed( - LEFT_MOTOR_SPEED, - RIGHT_MOTOR_SPEED);
 }
 
 void turnLeft() {
-  setSpeed(-255,255);
+  setSpeed(   LEFT_MOTOR_SPEED, - RIGHT_MOTOR_SPEED);
 }
 
 void turnRight() {
-  setSpeed(255,-255);
+  setSpeed( - LEFT_MOTOR_SPEED,   RIGHT_MOTOR_SPEED);
+}
+
+void stop() {
+    setSpeed(0, 0);
 }
 
 // Test function --------------------------------------------

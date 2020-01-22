@@ -5,11 +5,18 @@
 #include "UCharMatrix.h"
 #include "Vector.h"
 
-#define MAP_SIZE 72          // Size of the main map
-#define LOWRES_SIZE 24       // Size of the pathfinding map
-#define pixelLength 3.0f     // Length of a pixel in cm
-#define robotSpeed 20.0f     // Forward speed in cm/s
-#define robotTurnRate 0.8f   // Turn rate in rad/s
+// Size of the main map (must be a multiple of 3, better to also be a multiple of 8)
+// Check if you have enough memory before increasing it. 
+// Change it in the smartphone app too if you change it here
+#define MAP_SIZE 72
+// Size of the pathfinding map (Don't change)
+#define LOWRES_SIZE MAP_SIZE/3
+// Real world length of a main map pixel in cm. If you decrease it you increase the range of the map
+#define pixelLength 10.0f
+// Forward speed in cm/s (measure it with Tests/SpeedCalc/SpeedCalc.ino)
+#define robotSpeed 55.0f
+// Turn rate in rad/s (measure it with Tests/SpeedCalc/SpeedCalc.ino)
+#define robotTurnRate 6.81f
 
 // Motors (Powering: 12V)
 #define IN1  2

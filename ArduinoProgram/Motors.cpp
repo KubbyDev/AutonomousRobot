@@ -15,40 +15,44 @@ void clamp(int* x, int min, int max) {
 //Sets the speed of each motor (an integer between -255 and 255)
 void setSpeed(int leftSpeed, int rightSpeed) {
 
-  //The speed shoud always be between -255 and 255
+  //The speed should always be between -255 and 255
   clamp(&leftSpeed, -255, 255);
   clamp(&rightSpeed, -255, 255);
 
   //Sets the speed for each motor
-  analogWrite(ENA, abs(leftSpeed));
-  analogWrite(ENB, abs(rightSpeed));
+  analogWrite(ENA, abs(rightSpeed));
+  analogWrite(ENB, abs(leftSpeed));
 
   //Sets the direction of rotation for each motor
-  digitalWrite(IN1, leftSpeed > 0);
-  digitalWrite(IN2, leftSpeed < 0);
-  digitalWrite(IN3, rightSpeed > 0);
-  digitalWrite(IN4, rightSpeed < 0);
+  digitalWrite(IN1, rightSpeed > 0);
+  digitalWrite(IN2, rightSpeed < 0);
+  digitalWrite(IN3, leftSpeed > 0);
+  digitalWrite(IN4, leftSpeed < 0);
 }
 
 // High level control functions -----------------------------
 
-// With corrections due to imperfections
-// in the cardboard robot and bad cabling
+#define LEFT_MOTOR_SPEED 65
+#define RIGHT_MOTOR_SPEED 75
 
 void forward() {
-  setSpeed(-252, 255);
+  setSpeed(   LEFT_MOTOR_SPEED,   RIGHT_MOTOR_SPEED);
 }
 
 void backward() {
-  setSpeed(252, -255);
+  setSpeed( - LEFT_MOTOR_SPEED, - RIGHT_MOTOR_SPEED);
 }
 
 void turnLeft() {
-  setSpeed(-255,-255);
+  setSpeed(   LEFT_MOTOR_SPEED, - RIGHT_MOTOR_SPEED);
 }
 
 void turnRight() {
-  setSpeed(255,255);
+  setSpeed( - LEFT_MOTOR_SPEED,   RIGHT_MOTOR_SPEED);
+}
+
+void idle() {
+    setSpeed(0, 0);
 }
 
 // Init ----------------------------------------------------
@@ -71,14 +75,14 @@ void updateMotors() {
 
    if(fabsf(turnInput) > 0.1f) {
      if(turnInput > 0)
-       turnRight();
+        turnRight();
      else
-       turnLeft();
+        turnLeft();
    } 
    else {
      if(forwardInput > 0)
-       forward();
+        forward();
      else
-       backward();
+        idle();
    }
 }
