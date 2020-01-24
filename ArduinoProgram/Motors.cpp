@@ -58,31 +58,29 @@ void idle() {
 // Init ----------------------------------------------------
 
 void initMotors() {
-  
-  pinMode(IN1, OUTPUT); 
-  pinMode(IN2, OUTPUT); 
-  pinMode(IN3, OUTPUT);
-  pinMode(IN4, OUTPUT); 
-  pinMode(ENA, OUTPUT);  
-  pinMode(ENB, OUTPUT);
-
+    pinMode(IN1, OUTPUT); 
+    pinMode(IN2, OUTPUT); 
+    pinMode(IN3, OUTPUT);
+    pinMode(IN4, OUTPUT); 
+    pinMode(ENA, OUTPUT);  
+    pinMode(ENB, OUTPUT);
 }
 
 // Update -------------------------------------------------
 
-//Updates the motors speeds according to the forwardInput and the turnInput
+// Updates the motors speeds according to the forwardInput and the turnInput
 void updateMotors() {
 
-   if(fabsf(turnInput) > 0.1f) {
-     if(turnInput > 0)
-        turnRight();
-     else
-        turnLeft();
-   } 
-   else {
-     if(forwardInput > 0)
-        forward();
-     else
-        idle();
-   }
+    if(fabsf(turnInput) > 0.1f) {
+        if(turnInput > 0)
+            turnRight();
+        else
+            turnLeft();
+    }
+    else { 
+        if(forwardInput > 0)
+            forward();
+        else
+            idle();
+    }
 }

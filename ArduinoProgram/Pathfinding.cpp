@@ -38,14 +38,14 @@ void findPath() {
         for(int y = 0; y < LOWRES_SIZE; y++) {
             for(int x = 0; x < LOWRES_SIZE; x++) {
 
-                if(getMatrixValue(lowResMap, x, y) == 255)
+                unsigned char current = getMatrixValue(lowResMap, x, y);
+                if(current == 255)
                     continue;
                 // For all pixels around this pixel
                 for(int i = 0; i < 8; i++) {
                     int newX = x + offsets[2*i];
                     int newY = y + offsets[2*i +1];
-                    if(inMatrixBounds(lowResMap, newX, newY) 
-                    && getMatrixValue(lowResMap, newX, newY)+1 < getMatrixValue(lowResMap, x, y)) {
+                    if(inMatrixBounds(lowResMap, newX, newY) && getMatrixValue(lowResMap, newX, newY)+1 < current) {
                         setMatrixValue(lowResMap, x, y, getMatrixValue(lowResMap, newX, newY)+1);
                         changed = 1;
                     }
