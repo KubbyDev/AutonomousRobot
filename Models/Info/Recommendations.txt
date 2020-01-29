@@ -1,0 +1,9 @@
+All the parts should be printed with brims enabled. I printed them with Gold (Parts 1, 2, 3, 5, 6) and Shiny Silver (Parts 4, 7) PLA.
+
+These parts should be printed with 100% inside filling:
+1, 2, 3, 5, 6
+
+These parts should be printed with maximum supports enabled:
+3, 4, 5, 7
+
+Parts 4 and 7 have to be as lightweight as possible, but don't print them hollow or you will break them while removing the supports (5% inside filling works well).
