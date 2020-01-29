@@ -17,7 +17,7 @@ public class RobotTransform {
     }
 
     /** Returns the position of the 3 points forming the triangle that represents the robot */
-    public static float[][] getPoints() {
+    public static float[][] getPoints(float pixelWidth) {
 
         float[][] res = new float[3][2];
         double cos = Math.cos(rotation);
@@ -36,8 +36,8 @@ public class RobotTransform {
 
         //Converts the positions in canvas coordinates
         for(float[] point : res) {
-            point[0] = (float) (point[0] + x)*9;
-            point[1] = (float) (point[1] + y)*9;
+            point[0] = (float) (point[0] + x)*pixelWidth;
+            point[1] = (float) (point[1] + y)*pixelWidth;
         }
 
         return res;

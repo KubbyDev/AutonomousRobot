@@ -16,11 +16,11 @@ public class MainActivity extends AppCompatActivity {
 
         Network.init(this);
 
-        // Starts a thread that calls update() every 200 milliseconds (2 seconds after startup)
+        // Starts a thread that updates the map periodically
         new Thread(new Runnable() {
             @Override
             public void run() {
-                try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace(); }
+                sleep(2000);
                 while (true) {
                     sleep(500);
                     RobotTransform.request();
