@@ -5,7 +5,8 @@
 
 void findPath() {
 
-    //Serial.println("New path calculation");
+    //Serial.print("New path calculation. ");
+    //unsigned long start = millis();
 
     // This algorithm is not optimal (really not)
     // But it uses only n integers, n being the number of pixels of the lowresmap
@@ -74,4 +75,6 @@ void findPath() {
     }
 
     needsPathUpdate = 0;
+
+    //Serial.print("Took ");Serial.print(millis() - start);Serial.println(" ms");
 }

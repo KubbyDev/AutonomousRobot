@@ -152,7 +152,7 @@ void turnPixelOff(unsigned int x, unsigned int y) {
 void updateInternMap() {
 
     // If no measurement have been made, cancels
-    if(lastDistance == -1.0f)
+    if(lastDistance < 0)
         return;
 
     Vector* wallDir = vectorfromRot(rotation);

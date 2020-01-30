@@ -18,29 +18,33 @@ float newTurnInput = 0;
 
 void getMovementInput(Vector* targetPos) {
 
-    newForwardInput = 0;
-    newTurnInput = 0;
-
     // Calculates the needed turn input to reach the target
     float targetAngle = atan2(targetPos->y - position->y, 
                               targetPos->x - position->x);
+    clampAngle(&targetAngle); // Ensures that the angle is in [0, 2PI]
     
-    clampAngle(&targetAngle);
-    
-    float angleDiff = fabsf(targetAngle - rotation);
+    float angleDiff = targetAngle - rotation;
+    //Avoids making a turn of more than 180 degrees
+    if(targetAngle + PI < rotation) angleDiff += 2*PI;
+    if(targetAngle - PI > rotation) angleDiff -= 2*PI;
 
-    //If the angle difference is too small, doesn't turn
-    if(angleDiff > 0.5f) {
+    //Serial.print("rotation: ");Serial.print(rotation);Serial.print(" target: ");Serial.println(targetAngle);
 
-        //Avoids making a turn of more than 180 degrees
-        if(targetAngle - rotation > PI) targetAngle -= 2*PI;
-        if(targetAngle - rotation < -PI) targetAngle += 2*PI;
-
-        newTurnInput = (targetAngle > rotation) ? 1 : -1;
+    // Determines if the robot should turn or go forward
+    // If it is already going forward, it will turn only if the 
+    // angle difference is above a certain threshold
+    // If it is already turning, it will continue turning until 
+    // the target angle is reached
+    if((newTurnInput == 0 && fabsf(angleDiff) > MIN_ANGLE)
+    || (sign(newTurnInput == sign(angleDiff)))) 
+    {
+        newForwardInput = 0;
+        newTurnInput = (angleDiff > 0) ? 1 : -1;
     }
-    //If no big turn is needed, can go forward
+    // If no turn is needed, can go forward
     else {
         newForwardInput = 1;
+        newTurnInput = 0;
     }
 }
 
@@ -75,7 +79,7 @@ Vector* getNextPosition() {
 void updateNavigation() {
 
     // Checks if the robot is already on its target
-    int alreadyOnTarget = vectorDistSqr(target, position) <= 1;
+    int alreadyOnTarget = vectorDistSqr(target, position) <= ((TARGET_SIZE*TARGET_SIZE)/(PIXEL_LENGTH*PIXEL_LENGTH));
     //Serial.print("Distance: ");Serial.println(vectorDistSqr(target, position));
 
     // If it is not, calculates the new movement inputs
@@ -105,6 +109,7 @@ void updateNavigation() {
             waiting = 0;
             navStateChangeTime = micros();
             updateMotors();
+            resetLastUpdateTime();
         }
     }
     else {

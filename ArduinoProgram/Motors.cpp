@@ -33,10 +33,6 @@ void setSpeed(int leftSpeed, int rightSpeed) {
 
 // High level control functions -----------------------------
 
-#define LEFT_MOTOR_SPEED 65
-#define RIGHT_MOTOR_SPEED 68
-#define ROTATION_MULTIPLIER 0.8f
-
 void forward() {
     setSpeed(   LEFT_MOTOR_SPEED,   RIGHT_MOTOR_SPEED);
 }
@@ -46,11 +42,11 @@ void backward() {
 }
 
 void turnLeft() {
-    setSpeed(   LEFT_MOTOR_SPEED*ROTATION_MULTIPLIER, - RIGHT_MOTOR_SPEED*ROTATION_MULTIPLIER);
+    setSpeed(   LEFT_MOTOR_SPEED, - RIGHT_MOTOR_SPEED);
 }
 
 void turnRight() {
-    setSpeed( - LEFT_MOTOR_SPEED*ROTATION_MULTIPLIER,   RIGHT_MOTOR_SPEED*ROTATION_MULTIPLIER);
+    setSpeed( - LEFT_MOTOR_SPEED,   RIGHT_MOTOR_SPEED);
 }
 
 void idle() {
@@ -75,7 +71,7 @@ void initMotors() {
 void updateMotors() {
 
     if(fabsf(turnInput) > 0.1f) {
-        if(turnInput > 0)
+        if(turnInput < 0)
             turnRight();
         else
             turnLeft();

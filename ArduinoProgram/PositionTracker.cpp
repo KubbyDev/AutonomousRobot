@@ -50,3 +50,8 @@ void updatePosition() {
     rotation += turnInput * ROBOT_TURN_RATE * deltaTimeSec * velocityFraction;
     clampAngle(&rotation);
 }
+
+// Called after a waiting phase to avoid having a delta time that contains all the waiting time
+void resetLastUpdateTime() {
+    lastUpdateTime = micros();
+}

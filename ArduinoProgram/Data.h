@@ -23,9 +23,15 @@
 // You should use Tests/SpeedCalc/SpeedCalc.ino to calculate these values
 
 // Forward speed in cm/s (measure it with Tests/SpeedCalc/SpeedCalc.ino)
-#define ROBOT_SPEED 60.0f
+#define ROBOT_SPEED 54.7f
 // Turn rate in rad/s (measure it with Tests/SpeedCalc/SpeedCalc.ino)
-#define ROBOT_TURN_RATE 4.71f
+#define ROBOT_TURN_RATE 6.52f
+// The speed of the motors. These values should be as low as possible to make 
+// position tracking as accurate as possible. But if you make it too low, the motors 
+// wont turn. Also you should try to tweak them in order to make the robot go in a
+// straight line when it should (use SpeedCalc.ino to make these adjustments)
+#define LEFT_MOTOR_SPEED 65
+#define RIGHT_MOTOR_SPEED 68
 
 // Control configuration values ---------------------------------------------------------------------
 // It's not recommended to change these
@@ -42,6 +48,10 @@
 #define ACCEL_DURATION 700000
 // When the robot changes direction, it will stop and wait WAIT_TIME before continuing (microseconds)
 #define WAIT_TIME 500000
+// The minimum difference between the target direction and the robot direction to make the robot turn (radians)
+#define MIN_ANGLE 1.0f
+// The distance the robot has to be from its target to consider it is reached (in centimeters)
+#define TARGET_SIZE 20.0f
 
 // Global variables ---------------------------------------------------------------------------------
 
