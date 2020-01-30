@@ -1,5 +1,6 @@
-#include "../../ArduinoProgram/Data.h"
-#include "../../ArduinoProgram/Motors.h"
+// Execute copy.bat or copy.sh to get those files
+#include "Data.h"
+#include "Motors.h"
 
 void setup() {
   
