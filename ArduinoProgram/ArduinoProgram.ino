@@ -42,12 +42,9 @@ void loop() {
     // (Retrives or sends information to the user if necessary)
     updateCommunication();
 
-    // Updates the control algorithm
+    // Updates the control program and the motors
     // (Changes the values in Data.cpp)
     updateNavigation();
-    
-    // Updates the speed of the motors
-    updateMotors();
 
     // Lauches a new sonar measurement
     updateSonar();

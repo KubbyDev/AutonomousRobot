@@ -12,7 +12,8 @@ void updateSonar() {
 
     // If the time between this update and the last one is less than 25 ms, stops
     // 23.5 ms = 4m round trip
-    if(micros() - lastTriggerTime < 25000)
+    // Also stops if the robot is turning
+    if(micros() - lastTriggerTime < 25000 || fabsf(turnInput) > 0.1f)
         return;
 
     // Sends a 10 ms pulse
@@ -29,6 +30,10 @@ void updateSonar() {
 // Event called by the pin change interrupt when the echo is received
 void onEchoReceived() {
 
+    // Cancels the measurement if the robot is turning
+    if(fabsf(turnInput) > 0.1f)
+        return;
+
     // Calculates the travel time
     unsigned long travel = micros() - lastTriggerTime;
   
@@ -36,7 +41,7 @@ void onEchoReceived() {
     float distance = (travel/2) * SOUND_SPEED;
 
     // Saves the calculated distance if it is relevant (some measures are wrong)
-    if(distance > 0.1f)
+    if(distance > 0.1f && distance < 400.0f)
         lastDistance = distance;
 }
 

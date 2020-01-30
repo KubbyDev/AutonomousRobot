@@ -4,9 +4,6 @@
 #include "BooleanMatrix.h"
 #include "UCharMatrix.h"
 
-#include <math.h>
-#include <stdlib.h>
-
 #include <Arduino.h>
 
 // Turns a pixel ON on the intern map
@@ -154,8 +151,15 @@ void turnPixelOff(unsigned int x, unsigned int y) {
 //and the last distance calculated
 void updateInternMap() {
 
+    // If no measurement have been made, cancels
+    if(lastDistance == -1.0f)
+        return;
+
     Vector* wallDir = vectorfromRot(rotation);
-    float hitDistance = lastDistance / pixelLength; //In internMap units
+    float hitDistance = lastDistance / PIXEL_LENGTH; //In internMap units
+
+    // Sets the lastDistance to -1 to know it has been taken into account (it will be modified by Sonar.cpp)
+    lastDistance = -1.0f;
 
     Vector* currentPixel = vectorCopy(position);
 

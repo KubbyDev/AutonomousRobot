@@ -16,8 +16,8 @@ UCharMatrix* lowResMap = newMatrix(LOWRES_SIZE, LOWRES_SIZE);
 Vector* position = newVector(MAP_SIZE/2,MAP_SIZE/2);
 float rotation = 0;
 
-// Sonar data (last distance measured in cm)
-float lastDistance = 0;
+// Sonar data (last distance measured in cm). -1 means no measurement made
+float lastDistance = -1.0f;
 
 // Last forward input (1 = full forward, -1 = full backward)
 float forwardInput = 0;
@@ -30,5 +30,5 @@ Vector* target = newVector(0,0);
 // True if the path needs to be updated (the map/target just changed)
 int needsPathUpdate = 1;
 
-// Last navigation update time in micro seconds
-unsigned long lastUpdateTime = 0;
+// The last moment when the navigation state changed (microseconds)
+unsigned long navStateChangeTime = 0;

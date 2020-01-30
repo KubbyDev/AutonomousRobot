@@ -1,27 +1,25 @@
 #include "Navigation.h"
 #include "Pathfinding.h"
 #include "InternMap.h"
+#include "PositionTracker.h"
 #include "Data.h"
 #include "Vector.h"
 #include "UCharMatrix.h"
 #include "BooleanMatrix.h"
 #include "Sonar.h"
+#include "Motors.h"
+#include "Tools.h"
 
 #include <Arduino.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
 
-void clampAngle(float* angle) {
-    *angle = fmodf(*angle, 2*PI);
-    if(*angle < 0)
-        *angle += (2*PI);
-}
+int waiting = 0; // When the robot changes its movement input, it will wait for WAIT_TIME before moving again
+float newForwardInput = 0;
+float newTurnInput = 0;
 
-void getMovementInput(Vector* targetPos, float* forwardInput, float* turnInput) {
+void getMovementInput(Vector* targetPos) {
 
-    *forwardInput = 0;
-    *turnInput = 0;
+    newForwardInput = 0;
+    newTurnInput = 0;
 
     // Calculates the needed turn input to reach the target
     float targetAngle = atan2(targetPos->y - position->y, 
@@ -38,11 +36,11 @@ void getMovementInput(Vector* targetPos, float* forwardInput, float* turnInput) 
         if(targetAngle - rotation > PI) targetAngle -= 2*PI;
         if(targetAngle - rotation < -PI) targetAngle += 2*PI;
 
-        *turnInput = (targetAngle > rotation) ? 1 : -1;
+        newTurnInput = (targetAngle > rotation) ? 1 : -1;
     }
     //If no big turn is needed, can go forward
     else {
-        *forwardInput = 1;
+        newForwardInput = 1;
     }
 }
 
@@ -75,10 +73,6 @@ Vector* getNextPosition() {
 }
 
 void updateNavigation() {
-    
-    // Gets the time between this update and the previous one (seconds)
-    float deltaTime = (float) (micros() - lastUpdateTime) * 1e-6; 
-    lastUpdateTime = micros();
 
     // Checks if the robot is already on its target
     int alreadyOnTarget = vectorDistSqr(target, position) <= 1;
@@ -86,30 +80,54 @@ void updateNavigation() {
 
     // If it is not, calculates the new movement inputs
     if( ! alreadyOnTarget) { 
-        // Calculates the turnInput and the forwardInput to go to targetPosition
+        // Calculates the newTurnInput and the newForwardInput to go to targetPosition
         Vector* targetPosition = getNextPosition();    
         if(targetPosition != NULL)
-            getMovementInput(targetPosition, &forwardInput, &turnInput);    
+            getMovementInput(targetPosition);    
         
         free(targetPosition);
     }
     else {
-        forwardInput = 0;
-        turnInput = 0;
+        newForwardInput = 0;
+        newTurnInput = 0;
     }
     
-    //Updates the position and rotation of the robot on the map
-    float speed = forwardInput * robotSpeed/pixelLength * deltaTime;
-    position->x += cos(rotation) * speed;
-    position->y += sin(rotation) * speed;
-    rotation += turnInput * robotTurnRate * deltaTime;
-    clampAngle(&rotation);
-    
-    //Updates the path if necessary
+    // Updates the position and rotation of the robot on the map
+    // Also updates the motors when necessary
+    // When the direction that the robot should follow changes, the robot
+    // will stop for WAIT_TIME seconds and then start moving in the new direction
+    if(waiting) {
+        
+        // Waiting state: checks if the waiting time is ended
+        if(micros() - navStateChangeTime > WAIT_TIME) {
+            forwardInput = newForwardInput;
+            turnInput = newTurnInput;
+            waiting = 0;
+            navStateChangeTime = micros();
+            updateMotors();
+        }
+    }
+    else {
+        
+        // Normal state
+        updatePosition();
+
+        // New direction requested: switches to waiting state
+        if(newForwardInput != forwardInput || newTurnInput != turnInput) {
+        
+            forwardInput = 0;
+            turnInput = 0;
+            navStateChangeTime = micros();
+            updateMotors();
+            waiting = 1;
+        }
+    }
+
+    // Updates the path if necessary
     if(needsPathUpdate && !alreadyOnTarget)
         findPath();
 
-    //Updates the internMap and the lowResMap according to the data of the sonar
-    //Updates needsPathUpdate if necessary
+    // Updates the internMap and the lowResMap according to the data of the sonar
+    // Updates needsPathUpdate if necessary
     updateInternMap();
 }

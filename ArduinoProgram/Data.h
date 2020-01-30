@@ -5,30 +5,45 @@
 #include "UCharMatrix.h"
 #include "Vector.h"
 
-// Size of the main map (must be a multiple of 3, better to also be a multiple of 8)
-// Check if you have enough memory before increasing it. 
-// Change it in the smartphone app too if you change it here
-#define MAP_SIZE 72
-// Size of the pathfinding map (Don't change)
-#define LOWRES_SIZE MAP_SIZE/3
-// Real world length of a main map pixel in cm. If you decrease it you increase the range of the map
-#define pixelLength 10.0f
-// Forward speed in cm/s (measure it with Tests/SpeedCalc/SpeedCalc.ino)
-#define robotSpeed 55.0f
-// Turn rate in rad/s (measure it with Tests/SpeedCalc/SpeedCalc.ino)
-#define robotTurnRate 6.81f
+// Pins values --------------------------------------------------------------------------------------
 
 // Motors (Powering: 12V)
-#define IN1  2
-#define IN2  3
-#define IN3  5
-#define IN4  6
+#define IN1  4
+#define IN2  5
+#define IN3  6
+#define IN4  7
 #define ENA  9   // Needs to be a PWM pin (this one is a PWN on both the UNO and the MEGA)
 #define ENB  10  // Needs to be a PWM pin (this one is a PWN on both the UNO and the MEGA)
 
 // Sonar (Powering: 5V)
 #define TRIGGER_PIN 11
 #define ECHO_PIN 12  // Must be a PCINT pin (this one is a PCINT on both the UNO and the MEGA)
+
+// Experimentally determined values -----------------------------------------------------------------
+// You should use Tests/SpeedCalc/SpeedCalc.ino to calculate these values
+
+// Forward speed in cm/s (measure it with Tests/SpeedCalc/SpeedCalc.ino)
+#define ROBOT_SPEED 60.0f
+// Turn rate in rad/s (measure it with Tests/SpeedCalc/SpeedCalc.ino)
+#define ROBOT_TURN_RATE 4.71f
+
+// Control configuration values ---------------------------------------------------------------------
+// It's not recommended to change these
+
+// Size of the main map (must be a multiple of 3)
+// Check if you have enough memory before increasing it. 
+// Change it in the smartphone app too if you change it here
+#define MAP_SIZE 72
+// Size of the pathfinding map (Don't change)
+#define LOWRES_SIZE MAP_SIZE/3
+// Real world length of a main map pixel in cm. If you increase it you increase the real world size of the map
+#define PIXEL_LENGTH 10.0f
+// The time the robot takes to reach its max speed (microseconds)
+#define ACCEL_DURATION 700000
+// When the robot changes direction, it will stop and wait WAIT_TIME before continuing (microseconds)
+#define WAIT_TIME 500000
+
+// Global variables ---------------------------------------------------------------------------------
 
 extern BooleanMatrix* internMap;
 extern UCharMatrix* lowResMap;
@@ -39,6 +54,6 @@ extern float forwardInput;
 extern float turnInput;
 extern Vector* target;
 extern int needsPathUpdate;
-extern unsigned long lastUpdateTime;
+extern unsigned long navStateChangeTime;
 
 #endif //DATA_H
