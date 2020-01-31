@@ -36,7 +36,7 @@ Vector* vectorfromRot(float angle) {
 }
 
 float vectorDistSqr(Vector* a, Vector* b) {
-    float x = a->x - b->x;
-    float y = a->y - b->y;
+    float x = (a->x) - (b->x);
+    float y = (a->y) - (b->y);
     return x*x + y*y;
 }
