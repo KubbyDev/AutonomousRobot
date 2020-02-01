@@ -51,8 +51,8 @@ void getMovementInput(Vector* targetPos) {
 //Gets the position next "checkpoint" to get to the target
 Vector* getNextPosition() {
 
-    //List of all possible movements
-    //Diagonals are at the end so straight lines are prefered
+    // List of all possible movements
+    // Diagonals are at the end so straight lines are prefered
     int offsets[] = {1,0, 0,1, -1,0, 0,-1, 1,1, -1,1, -1,-1, 1,-1};
 
     //Gets the tile with the smallest distance from the target
@@ -84,12 +84,22 @@ void updateNavigation() {
 
     // If it is not, calculates the new movement inputs
     if( ! alreadyOnTarget) { 
-        // Calculates the newTurnInput and the newForwardInput to go to targetPosition
-        Vector* targetPosition = getNextPosition();    
-        if(targetPosition != NULL)
-            getMovementInput(targetPosition);    
+
+        // If the robot is inside a wall, goes backwards
+        if(getMatrixValue(lowResMap, round(position->x/3), round(position->y/3)) == 255) {
+            
+            newForwardInput = -1;
+            newTurnInput = 0;
+        }
+        else {
+            
+            // Calculates the newTurnInput and the newForwardInput to go to targetPosition
+            Vector* targetPosition = getNextPosition();    
+            if(targetPosition != NULL)
+                getMovementInput(targetPosition);    
         
-        free(targetPosition);
+            free(targetPosition);
+        }
     }
     else {
         newForwardInput = 0;

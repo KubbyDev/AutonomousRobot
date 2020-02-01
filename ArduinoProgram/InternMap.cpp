@@ -147,8 +147,7 @@ void turnPixelOff(unsigned int x, unsigned int y) {
     free(toCheck);
 }
 
-//Updates the internMap according to the position, the rotation
-//and the last distance calculated
+// Updates the internMap according to the position, the rotation and the last distance calculated
 void updateInternMap() {
 
     // If no measurement have been made, cancels
@@ -164,17 +163,23 @@ void updateInternMap() {
     Vector* currentPixel = vectorCopy(position);
 
     // Empties all the pixels between the robot and the hit point (with a margin of 1 to avoid
-    // redoing expensive path finding just because a pixel blinked)
+    // redoing expensive path finding calculations just because a pixel blinked). 
     for(int i = 0; i < hitDistance-1; i++) {
+        
         turnPixelOff(round(currentPixel->x), round(currentPixel->y));
         vectorAdd(currentPixel, wallDir);
+
+        // Stops if the map bounds are reached
+        if(!bm_inBounds(internMap, round(currentPixel->x), round(currentPixel->y)))
+            break;
     }
 
     //Fills the pixel at the hit point
     vectorSet(currentPixel, position->x, position->y);
     vectorMult(wallDir, hitDistance);
     vectorAdd(currentPixel, wallDir);
-    turnPixelOn(round(currentPixel->x), round(currentPixel->y));
+    if(bm_inBounds(internMap, round(currentPixel->x), round(currentPixel->y)))
+        turnPixelOn(round(currentPixel->x), round(currentPixel->y));   
 
     //Serial.print("Turned on ");Serial.print(round(currentPixel->x));Serial.print(" ");Serial.println(round(currentPixel->y));
 

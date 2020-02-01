@@ -4,6 +4,7 @@
 // - Navigates to the target position. The low res map is used to find a path to it
 // - Makes sonar measurements and updates the intern map and the low res map
 // - Answers the requests of the ESP via Serial (give the intern map or the position, change the target position)
+// - Manages the servo for the arms
 //
 // ----------------------------------------------------------------------------------------------------------
 
@@ -13,6 +14,7 @@
 
 #include "Motors.h"
 #include "Sonar.h"
+#include "Servo.h"
 
 #include "Communication.h"
 
@@ -34,6 +36,9 @@ void setup() {
 
     // Initialises the communication with the ESP8266
     initCommunication();
+
+    // Initialises the servo for the arms
+    initServo();
 }
 
 void loop() {
@@ -48,4 +53,7 @@ void loop() {
 
     // Lauches a new sonar measurement
     updateSonar();
+
+    // Updates the arms position
+    updateServo();
 }

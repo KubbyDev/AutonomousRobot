@@ -19,24 +19,26 @@
 #define TRIGGER_PIN 11
 #define ECHO_PIN 12  // Must be a PCINT pin (this one is a PCINT on both the UNO and the MEGA)
 
+// Servo (Powering: 3.3V)
+#define SERVO_PIN 2
+
 // Experimentally determined values -----------------------------------------------------------------
 // You should use Tests/SpeedCalc/SpeedCalc.ino to calculate these values
 
 // Forward speed in cm/s (measure it with Tests/SpeedCalc/SpeedCalc.ino)
-#define ROBOT_SPEED 53.5f
+#define ROBOT_SPEED 47.0f
 // Turn rate in rad/s (measure it with Tests/SpeedCalc/SpeedCalc.ino)
-#define ROBOT_TURN_RATE 6.65f
+#define ROBOT_TURN_RATE 6.0f
 // The speed of the motors. These values should be as low as possible to make 
 // position tracking as accurate as possible. But if you make it too low, the motors 
 // wont turn. Also you should try to tweak them in order to make the robot go in a
 // straight line when it should (use SpeedCalc.ino to make these adjustments)
-#define LEFT_MOTOR_SPEED 65
-#define RIGHT_MOTOR_SPEED 68
+#define LEFT_MOTOR_SPEED 77
+#define RIGHT_MOTOR_SPEED 81
 // The time the robot takes to reach its max speed (microseconds)
 #define ACCEL_DURATION 500000
 
 // Control configuration values ---------------------------------------------------------------------
-// It's not recommended to change these
 
 // Size of the main map (must be a multiple of 3)
 // Check if you have enough memory before increasing it. 
@@ -45,13 +47,18 @@
 // Size of the pathfinding map (Don't change)
 #define LOWRES_SIZE MAP_SIZE/3
 // Real world length of a main map pixel in cm. If you increase it you increase the real world size of the map
-#define PIXEL_LENGTH 10.0f
+#define PIXEL_LENGTH 5.0f
 // When the robot changes direction, it will stop and wait WAIT_TIME before continuing (microseconds)
-#define WAIT_TIME 500000
+#define WAIT_TIME 200000
 // The minimum difference between the target direction and the robot direction to make the robot turn (radians)
-#define MIN_ANGLE 1.0f
+#define MIN_ANGLE 0.8f
 // The distance the robot has to be from its target to consider it is reached (in centimeters)
-#define TARGET_SIZE 50.0f
+#define TARGET_SIZE 30.0f
+// The min and max angles for the arms (0 is horizontal)
+#define SERVO_MIN 120
+#define SERVO_MAX 180
+// The time in milliseconds between two arms position changes
+#define SERVO_PERIOD 300
 
 // Global variables ---------------------------------------------------------------------------------
 

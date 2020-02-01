@@ -16,7 +16,7 @@ void updateSonar() {
     if(micros() - lastTriggerTime < 25000 || fabsf(turnInput) > 0.1f)
         return;
 
-    // Sends a 10 ms pulse
+    // Sends a 10 us pulse
     digitalWrite(TRIGGER_PIN, LOW);
     delayMicroseconds(5);  
     digitalWrite(TRIGGER_PIN, HIGH);

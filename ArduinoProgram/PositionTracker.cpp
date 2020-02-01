@@ -27,13 +27,13 @@ float getVelocityFractionForInterval(unsigned long timeAfterStart, unsigned long
 
     // If the whole interval is during the acceleration phase
     if(highBound < ACCEL_DURATION)
-        return (float)(lowBound+highBound) / (2*ACCEL_DURATION);
+        return (float)(lowBound+highBound) / (float)(2*ACCEL_DURATION);
 
     // If the interval is on both phases
     unsigned long accelTime = ACCEL_DURATION - lowBound;
     unsigned long constantTime = highBound - ACCEL_DURATION;
-    float accelPart = (float)(lowBound+ACCEL_DURATION) / (2*ACCEL_DURATION);
-    return (accelPart*accelTime + constantTime) / deltaTime;
+    float accelPart = (float)(lowBound+ACCEL_DURATION) / (float)(2*ACCEL_DURATION);
+    return (float)(accelPart*accelTime + constantTime) / (float)deltaTime;
 }
 
 void updatePosition() {
@@ -44,7 +44,7 @@ void updatePosition() {
     float deltaTimeSec = (float)(now - lastUpdateTime) * 1e-6;
     lastUpdateTime = now;
     
-    float speed = forwardInput * ROBOT_SPEED/PIXEL_LENGTH * deltaTimeSec * velocityFraction;
+    float speed = forwardInput * (ROBOT_SPEED/PIXEL_LENGTH) * deltaTimeSec * velocityFraction;
     position->x += cos(rotation) * speed;
     position->y += sin(rotation) * speed;
     rotation += turnInput * ROBOT_TURN_RATE * deltaTimeSec * velocityFraction;
