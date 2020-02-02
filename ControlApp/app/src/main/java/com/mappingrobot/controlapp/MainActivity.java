@@ -36,16 +36,25 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
 
+        // Touch events
         View view = findViewById(R.id.mapview);
         view.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+
+                // The side length of a pixel of the map
+                float pixelWidth = ((MapView)v).getPixelWidth();
+
+                // Avoids triggering the target change twice (when the user stops pressing)
                 if (event.getActionMasked() != MotionEvent.ACTION_DOWN)
                     return false;
+
+                // The pixel the user touched
                 int x = (int)event.getX();
                 int y = (int)event.getY();
-                if(x > 0 && x < RobotMap.SIZE*9 && y > 0 && y < RobotMap.SIZE*9)
-                    Network.requestTargetChange(x/9, y/9);
+                if(x > 0 && x < RobotMap.SIZE*pixelWidth && y > 0 && y < RobotMap.SIZE*pixelWidth)
+                    Network.requestTargetChange(Math.round(x/pixelWidth), Math.round(y/pixelWidth));
+
                 return false;
             }
         });

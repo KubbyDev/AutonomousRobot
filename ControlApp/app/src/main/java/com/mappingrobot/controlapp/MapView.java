@@ -13,6 +13,7 @@ public class MapView extends SurfaceView {
 
     private Paint paint;
     private SurfaceHolder surfaceHolder;
+    private float pixelWidth = 1;
 
     public MapView(Context context, AttributeSet attr) {
         super(context, attr);
@@ -28,10 +29,7 @@ public class MapView extends SurfaceView {
         if(canvas == null)
             return;
 
-        float pixelWidth = (float)Math.min(canvas.getWidth(), canvas.getHeight()) / RobotMap.SIZE;
-
-        int i = canvas.getWidth();
-        int j = canvas.getHeight();
+        pixelWidth = (float)Math.min(canvas.getWidth(), canvas.getHeight()) / RobotMap.SIZE;
 
         paint.setColor(Color.argb(255, 0, 0, 0));
         canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), paint);
@@ -58,5 +56,9 @@ public class MapView extends SurfaceView {
         canvas.drawPath(path, paint);
 
         surfaceHolder.unlockCanvasAndPost(canvas);
+    }
+
+    public float getPixelWidth() {
+        return pixelWidth;
     }
 }
