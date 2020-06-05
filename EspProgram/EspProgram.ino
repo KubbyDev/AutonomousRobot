@@ -140,8 +140,8 @@ void getMap() {
     // Formats the received data to sends it back in the HTTP response
     String result = "";
     for(int i = 0; i < MAP_SIZE*MAP_SIZE/8; i++) {
-        result += res[i]/16;
-        result += res[i]%16;
+        result += toHex(res[i]/16);
+        result += toHex(res[i]%16);
     }
 
     server.send(200, "text/plain", result);
@@ -171,8 +171,8 @@ void getPosition() {
     SERIALOBJECT.write("P\n", 2);
 
      // Gets the response from the Arduino
-    int* res = (int*) malloc(sizeof(int) * 3*15 +2);
-    int error = receiveData(res, 3*15 +2);
+    int* res = (int*) malloc(sizeof(int) * (15+1+15+1+15));
+    int error = receiveData(res, 15+1+15+1+15);
 
     // Sends an error message if there is an error
     if(error != 0) {
@@ -182,7 +182,7 @@ void getPosition() {
     }
 
     String result = "";
-    for(int i = 0; i < 3*15 +2; i++)
+    for(int i = 0; i < 15+1+15+1+15; i++)
         result += (char) res[i];
 
     server.send(200, "text/plain", result);

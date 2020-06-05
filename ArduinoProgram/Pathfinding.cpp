@@ -5,6 +5,17 @@
 
 void findPath() {
 
+    // Resets the pixels that are not walls in lowResMap (sets them to 254)
+    for(int y = 0; y < LOWRES_SIZE; y++)
+        for(int x = 0; x < LOWRES_SIZE; x++)
+            if(getMatrixValue(lowResMap, x, y) != 255)
+                setMatrixValue(lowResMap, x, y, 254);
+
+    
+}
+
+void old_findPath() {
+
     //Serial.print("New path calculation. ");
     //unsigned long start = millis();
 

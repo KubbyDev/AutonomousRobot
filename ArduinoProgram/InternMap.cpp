@@ -25,15 +25,15 @@ void turnPixelOn(unsigned int x, unsigned int y) {
             int lrY = (y+j)/3;
             if(inMatrixBounds(lowResMap, lrX, lrY) && (getMatrixValue(lowResMap, lrX, lrY) != 255)) {
 
-                //Serial.print("Turned on ");Serial.print(lrX);Serial.print(" ");Serial.println(lrY);
-                setMatrixValue(lowResMap, lrX, lrY, 255);
-                
                 // If the value of the pixel is greater than the value of the pixel at the position
                 // of the robot, this pixel has no chance to be on the path, so we don't update the path
                 if(getMatrixValue(lowResMap, lrX, lrY) < getMatrixValue(lowResMap, (position->x)/3, (position->y)/3)) {
                     //Serial.print("Update path because pixel on ");Serial.print(lrX);Serial.print(" ");Serial.println(lrY);
                     needsPathUpdate = 1;
                 }
+
+                //Serial.print("Turned on ");Serial.print(lrX);Serial.print(" ");Serial.println(lrY);
+                setMatrixValue(lowResMap, lrX, lrY, 255);
             }
         }
     }

@@ -78,16 +78,18 @@ Vector* getNextPosition() {
 
 void updateNavigation() {
 
+    DBG Serial.println("Updating navigation ----------------------");
+
     // Checks if the robot is already on its target
     int alreadyOnTarget = vectorDistSqr(target, position) <= ((TARGET_SIZE*TARGET_SIZE)/(PIXEL_LENGTH*PIXEL_LENGTH));
     //Serial.print("Distance: ");Serial.println(vectorDistSqr(target, position));
 
     // If it is not, calculates the new movement inputs
     if( ! alreadyOnTarget) { 
-
+ 
         // If the robot is inside a wall, goes backwards
         if(getMatrixValue(lowResMap, round(position->x/3), round(position->y/3)) == 255) {
-            
+            DBG Serial.println("Inside a wall");
             newForwardInput = -1;
             newTurnInput = 0;
         }
@@ -97,11 +99,14 @@ void updateNavigation() {
             Vector* targetPosition = getNextPosition();    
             if(targetPosition != NULL)
                 getMovementInput(targetPosition);    
+
+            DBG Serial.print("Movement input: forward: ");Serial.print(newForwardInput);Serial.print(" turn: ");Serial.println(newTurnInput);
         
             free(targetPosition);
         }
     }
     else {
+        DBG Serial.println("Already on target");
         newForwardInput = 0;
         newTurnInput = 0;
     }
@@ -139,10 +144,15 @@ void updateNavigation() {
     }
 
     // Updates the path if necessary
-    if(needsPathUpdate && !alreadyOnTarget)
+    if(needsPathUpdate && !alreadyOnTarget) {
+        long strt = millis();
+        DBG Serial.println("Updating path");
         findPath();
+        DBG Serial.print("Done ! ");Serial.print(millis() - strt);Serial.println("ms");            
+    }
 
     // Updates the internMap and the lowResMap according to the data of the sonar
     // Updates needsPathUpdate if necessary
+    DBG Serial.println("Updating Intern map");
     updateInternMap();
 }

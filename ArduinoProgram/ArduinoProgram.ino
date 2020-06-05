@@ -23,6 +23,8 @@
 #include "Vector.h"
 
 void setup() {
+
+    Serial.begin(115200);
   
     // Empties the internMap and the low resolution map
     bm_clear(internMap);
@@ -42,6 +44,8 @@ void setup() {
 }
 
 void loop() {
+
+    DBG Serial.println("NEW LOOP --------------------------------------------------------------------------------------------");
 
     // Updates the communication with the ESP8266
     // (Retrives or sends information to the user if necessary)

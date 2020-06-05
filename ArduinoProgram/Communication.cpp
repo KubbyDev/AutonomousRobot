@@ -84,7 +84,7 @@ void sendMapToEsp() {
         unsigned char uc = bm_getByte(internMap, i);
 
         // Waits for the ESP to read the data
-        if(i%16 == 0)
+        if(i%32 == 0)
             SERIALOBJECT.flush();
         
         // Transmits the number in hexadecimal form
@@ -126,6 +126,8 @@ void initCommunication() {
 
 void updateCommunication() {
 
+    DBG Serial.println("Updating Communication -----------------------------------");
+
     // If no command is received, does nothing
     if(! SERIALOBJECT.available())
         return;
@@ -144,6 +146,7 @@ void updateCommunication() {
     // If a new target position is received, updates it
     // Target position update commands are of this form: T<POSX>,<POSY>\n
     if(commandType == 'T') {
+        DBG Serial.println("Got T");
         int x = readInt(&buffer, ',');
         int y = readInt(&buffer, '\n');
         vectorSet(target, x, y);
@@ -151,12 +154,16 @@ void updateCommunication() {
     }
     // If the map is requested, sends it
     // Map requests are of this form: M\n
-    if(commandType == 'M')
+    if(commandType == 'M') {
+        DBG Serial.println("Got M");
         sendMapToEsp();
+    }
     // If the position is requested, sends it
     // Position requests are of this form: P\n
-    if(commandType == 'P')
-        sendPositionToEsp();  
+    if(commandType == 'P') {
+        DBG Serial.println("Got P");
+        sendPositionToEsp();
+    }
 
     free(bufferStart);
 }

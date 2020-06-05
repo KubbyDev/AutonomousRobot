@@ -15,6 +15,8 @@ void initServo() {
 
 void updateServo() {
 
+    DBG Serial.println("Updating Servo ----------------------");
+
     // Does nothing if the position already changed shortly before
     if(millis() - lastChangeTime < SERVO_PERIOD)
         return;

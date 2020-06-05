@@ -12,7 +12,7 @@ BooleanMatrix* internMap = bm_new(MAP_SIZE, MAP_SIZE);
 // lowResMap is ON if at least 1 pixel of the intern map that touches it is ON
 UCharMatrix* lowResMap = newMatrix(LOWRES_SIZE, LOWRES_SIZE);
 
-// Position and rotation (cm and radians)
+// Position and rotation (map pixels and radians)
 Vector* position = newVector(MAP_SIZE/2,MAP_SIZE/2);
 float rotation = 0;
 

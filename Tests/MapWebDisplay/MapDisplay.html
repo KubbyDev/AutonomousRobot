@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Pretty map displayer</title>
+</head>
+<body>
+<canvas id="canvas" width="720" height="720"></canvas>
+
+<script crossorigin="null">
+
+	const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+	const SIZE = 72;
+	const pixelLength = 10;
+	let values = new Array(SIZE*SIZE);
+	const host = "http://192.168.0.20";
+
+	function update() {
+		function callback() {
+			updateValues(this.responseText);
+			updateDisplay();
+			console.log("update")
+		}
+		let req = new XMLHttpRequest();
+		req.onload = callback;
+		req.open("get", host + "/map", true);
+		req.send(null);
+	}
+
+    function updateValues(receivedData) {
+        // For each hexadecimal value
+        for(let i = 0; i < SIZE*SIZE/4; i++) {
+            // Updates the 4 pixels this value represents
+            const value = parseInt(receivedData[i], 16);
+            values[i*4    ] =  value   /8 == 1;
+            values[i*4 + 1] = (value%8)/4 == 1;
+            values[i*4 + 2] = (value%4)/2 == 1;
+            values[i*4 + 3] =  value%2    == 1;
+        }
+    }
+	
+	function updateDisplay() {
+		for(let y = 0; y < SIZE; y++) {
+			for(let x = 0; x < SIZE; x++) {
+				ctx.fillStyle = values[y*SIZE+x] ? "black" : "silver";
+				ctx.fillRect(x*pixelLength, y*pixelLength, pixelLength, pixelLength);
+			}
+		}	
+	}
+	
+	setInterval(update, 1000);
+
+</script>
+
+</body>
+</html>

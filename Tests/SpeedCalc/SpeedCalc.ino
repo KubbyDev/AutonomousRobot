@@ -2,10 +2,7 @@
 #include "Data.h"
 #include "Motors.h"
 
-#define FORWARD_TIME 1000
-#define BACKWARD_TIME 1000
-#define RIGHT_TIME 1000
-#define LEFT_TIME 1000
+#define MEASURE_TIME 1000
 
 void setup() {
   
@@ -18,25 +15,25 @@ void setup() {
     delay(1000);
     forwardInput = 1;
     updateMotors();
-    delay(FORWARD_TIME);
+    delay(MEASURE_TIME);
     forwardInput = 0;
     updateMotors();
     delay(1000);
     forwardInput = -1;
     updateMotors();
-    delay(BACKWARD_TIME);
+    delay(MEASURE_TIME);
     forwardInput = 0;
     updateMotors();
     delay(1000);
     turnInput = 1;
     updateMotors();
-    delay(LEFT_TIME);
+    delay(MEASURE_TIME);
     turnInput = 0;
     updateMotors();
     delay(1000);
     turnInput = -1;
     updateMotors();
-    delay(RIGHT_TIME);
+    delay(MEASURE_TIME);
     turnInput = 0;
     updateMotors();
 }
