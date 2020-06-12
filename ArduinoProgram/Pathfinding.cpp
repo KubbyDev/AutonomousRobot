@@ -1,91 +1,120 @@
+#include <stdlib.h>
+#include <PriorityQueue.h> //https://github.com/CollinDietz/PriorityQueue
+
 #include "Pathfinding.h"
 #include "Data.h"
 
-#include <stdlib.h>
+typedef struct {
+    unsigned char x;
+    unsigned char y;
+    unsigned char dist;
+} Node;
+
+inline unsigned char isqrt(int32_t n) {
+    int32_t r = n;
+    while(r*r > n) {
+        r += n/r;
+        r /= 2;
+    }
+    return r;
+}
+
+inline int32_t sqr(int32_t x) {
+    return x*x;
+}
+
+unsigned char distance(Node n, int32_t goalx, int32_t goaly) {
+    int32_t nx = n.x;
+    int32_t ny = n.y;
+    return isqrt(sqr(nx-goalx) + sqr(ny-goaly));
+}
+
+bool compare(Node a, Node b) {
+    return a.dist < b.dist;
+}
+
+// Warning: This function returns nodes but doesn't set the dist value
+Node* getNeighbours(Node node, int* nbFound) {
+
+    // Allocates space for 8 neighbours even if less are found to save time
+    Node* res = (Node*) malloc(sizeof(Node)*8);
+
+    int arrayindex = 0;
+    for(int y = -1; y <= 1; y++) {
+        for(int x = -1; x <= 1; x++) {
+
+            if(x == 0 && y == 0) continue;
+
+            unsigned char nx = node.x + x;
+            unsigned char ny = node.y + y;
+
+            if(! inMatrixBounds(lowResMap, nx, ny)) continue;
+            if(getMatrixValue(lowResMap, nx, ny) == 255) continue;
+
+            (res+arrayindex)->x = nx;
+            (res+arrayindex)->y = ny;
+
+            arrayindex++;
+        }
+    }
+
+    *nbFound = arrayindex;
+    return res;
+}
 
 void findPath() {
 
-    // Resets the pixels that are not walls in lowResMap (sets them to 254)
-    for(int y = 0; y < LOWRES_SIZE; y++)
-        for(int x = 0; x < LOWRES_SIZE; x++)
-            if(getMatrixValue(lowResMap, x, y) != 255)
-                setMatrixValue(lowResMap, x, y, 254);
-
-    
-}
-
-void old_findPath() {
-
-    //Serial.print("New path calculation. ");
-    //unsigned long start = millis();
-
-    // This algorithm is not optimal (really not)
-    // But it uses only n integers, n being the number of pixels of the lowresmap
-    // So it fits my usage because I don't have much memory to work with
-    // (Something like Dijkstra would require a structure that can store n^2 numbers)
-
-    // In short it goes through the map and for each pixel, if a neighbour pixel has a distance value
-    // that is less or equal to its own distance value, it takes the neighbours pixel's value+1. 
-    // And the algorithm does it repeatedly until there is no more change. The worst case scenario's
-    // complexity is n^2, but in practise it is often much faster because a lot of pixels are updated
-    // on each iteration.
-
-    // Resets the pixels that are not walls in lowResMap (sets them to 254)
-    for(int y = 0; y < LOWRES_SIZE; y++)
-        for(int x = 0; x < LOWRES_SIZE; x++)
-            if(getMatrixValue(lowResMap, x, y) != 255)
-                setMatrixValue(lowResMap, x, y, 254);
-
-    // Sets the targets distance to the target to 0
-    Vector* targetPosition = vectorCopy(target);
-    vectorMult(targetPosition, (float)LOWRES_SIZE/MAP_SIZE);
-    setMatrixValue(lowResMap, targetPosition->x, targetPosition->y, 0);
-    free(targetPosition);
-
-    // List of all movements that are considered possible for the pathfinding
-    char offsets[] = {1,0, 0,1, -1,0, 0,-1, 1,1, -1,1, -1,-1, 1,-1};
-
-    // List of numbers for the update order
-    // There are 4 update orders (top left to bottom right, top right to bottom left, bl to tr, br to tl)
-    // For each order, there are startX, startY, stepX, stepY, endX, endY values
-    char orders[] = {
-        0, 0, 1, 1, LOWRES_SIZE, LOWRES_SIZE,
-        LOWRES_SIZE-1, 0, -1, 1, -1, LOWRES_SIZE,
-        0, LOWRES_SIZE-1, 1, -1, LOWRES_SIZE, -1,
-        LOWRES_SIZE-1, LOWRES_SIZE-1, -1, -1, -1, -1
-    };
-    int selected = 0;
-    
-    // For all pixels in the map, calculates the distance to the target
-    // Continues the calculation until there are pixels that have not been calculated
-    int changed = 1;
-    while(changed) {
-
-        changed = 0;
-        // The order of the update changes at each update (see the order array above)
-        for(int y = orders[selected*6+1]; y != orders[selected*6+5]; y += orders[selected*6+3]) {
-            for(int x = orders[selected*6+0]; x != orders[selected*6+4]; x += orders[selected*6+2]) {
-
-                unsigned char current = getMatrixValue(lowResMap, x, y);
-                if(current == 255)
-                    continue;
-                // For all pixels around this pixel
-                for(int i = 0; i < 8; i++) {
-                    int newX = x + offsets[2*i];
-                    int newY = y + offsets[2*i +1];
-                    if(inMatrixBounds(lowResMap, newX, newY) && getMatrixValue(lowResMap, newX, newY)+1 < current) {
-                        setMatrixValue(lowResMap, x, y, getMatrixValue(lowResMap, newX, newY)+1);
-                        changed = 1;
-                    }
-                }
-            }
-        }
-
-        // Changes the order of the update (look at the order array above)
-        selected = (selected+1) %4;
-    }
-
+    int posx = (position->x)/3;
+    int posy = (position->y)/3;
+    int tarx = (target->x)/3;
+    int tary = (target->y)/3;
     needsPathUpdate = 0;
 
-    //Serial.print("Took ");Serial.print(millis() - start);Serial.println(" ms");
+    // Resets the pixels that are not walls in map (sets them to 254)
+    for(int y = 0; y < LOWRES_SIZE; y++)
+        for(int x = 0; x < LOWRES_SIZE; x++)
+            if(getMatrixValue(lowResMap, x, y) != 255)
+                setMatrixValue(lowResMap, x, y, 254);
+
+    // This queue contains the nodes that will be processed by priority order
+    // (distance to the start, this version of the algorithm starts at the end)
+    PriorityQueue<Node> queue = PriorityQueue<Node>(compare);
+    Node end = {(unsigned char)tarx, (unsigned char)tary, 0};
+    setMatrixValue(lowResMap, tarx, tary, 0);
+    queue.push(end);
+
+    // Main loop
+    while (! queue.isEmpty()) {
+
+        Node current = queue.pop();
+        unsigned char currentScore = getMatrixValue(lowResMap, current.x, current.y);
+
+        // A path has been found
+        if(current.x == posx && current.y == posy)
+            return;
+
+        // Processes neighbours of the current node
+        int nbFound;
+        Node* neighbours = getNeighbours(current, &nbFound);
+        for(int i = 0; i < nbFound; i++) {
+
+            unsigned char tentative = currentScore+1;
+            unsigned char nx = (neighbours+i)->x;
+            unsigned char ny = (neighbours+i)->y;
+
+            // New best path to this node has been found
+            if(tentative < getMatrixValue(lowResMap, nx, ny)) {
+
+                setMatrixValue(lowResMap, nx, ny, tentative);
+                (neighbours+i)->dist = tentative + distance(neighbours[i], posx, posy);
+
+                // If the node is not in the queue yet, adds it
+                if(true) // TODO: This would greatly optimise
+                    queue.push(neighbours[i]);
+            }
+        }
+        free(neighbours);
+    }
+    
+    Serial.println("NO PATH FOUND");
 }
