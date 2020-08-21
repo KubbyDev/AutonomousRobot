@@ -1,8 +1,16 @@
 # Autonomous Robot
 
-This project is a robot that uses an ultrasonic sensor and an Arduino to create a 2D map of its environment. It is then able to use this 2D map to move from one point to another using pathfinding. To be controlled, the robot's ESP8266 hosts a Wifi network that the user can connect to using a smartphone app. The app requests and displays the 2D map of the robot and its expected position in the map. The user can then click on the place he wants the robot to move to.
+## Note on the current progress of the project
+
+This is only the version 1 of the robot. I think the software could work, but there are 2 major hardware problems.  
+The ultrasonic sensor is not anywhere near accurate enough, and it will probably work a lot better if I can have more than one point (currently I only have the distance to the first obstacle in front of the robot). A lidar could work well for that.  
+The second problem is the accuracy of the positioning system. This version doesn't have any feedback, it only knows when and for how much time the motors where powered. It works pretty well for the first few seconds but quickly desynchronizes from reality. I should add encoders on the wheels.  
+Also the communication between the Arduino and the ESP and between the ESP and the phone are slow, I should try to improve on that (Maybe use TCP instead of HTTP for the ESP-phone).  
+Lastly, the Arduino is a bit underpowered to calculate paths, even with A* pathfinding. I can maybe replace it with a Teensy or use the ESP or a Raspberry pi for these high level things.
 
 ## Demo
+
+This project is a robot that uses an ultrasonic sensor and an Arduino to create a 2D map of its environment. It is then able to use this 2D map to move from one point to another using pathfinding. To be controlled, the robot's ESP8266 hosts a Wifi network that the user can connect to using a smartphone app. The app requests and displays the 2D map of the robot and its expected position in the map. The user can then click on the place he wants the robot to move to.
 
 For the moment the obstacle avoiding doesn't work and the map updating is really bad. But I managed to get the communication and the navigation working so I made this short demo video
 [![Demo 1 - Navigation](https://res.cloudinary.com/marcomontalbano/image/upload/v1580560084/video_to_markdown/images/youtube--F6cUCP5h3g4-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://www.youtube.com/watch?v=F6cUCP5h3g4 "Demo 1 - Navigation")
@@ -29,6 +37,7 @@ The sonar launches a measure every 25 milliseconds minimum (23 ms = 4 meters rou
 ### Navigation
 
 The memory space is very limited, so I had to find a pathfinding algorithm that works directly on the low res map (without storing too much things beside). The solution I came up with is not good in terms of performance but it meets this goal. The algorithm goes through the map and for each pixel, if a neighbour pixel has a distance value that is less or equal to its own distance value, it takes the neighbours pixel's value+1. And the algorithm does it repeatedly until there is no more change. The worst case scenario's complexity is n^2, but in practise it is often much faster because a lot of pixels are updated on each iteration. Also the order of the update changes between each iteration to maximise the chances of updating multiple pixels per iteration.  
+Note: I added A* pathfinding to improve performance but it only works on the Mega because the Uno doesn't have enough memory
 
 After execution of this algorithm, the low res map will have 0 on the target position, 255 on the walls and the distance to the target on every other pixel. The low res map is then used by the robot to know in which direction it has to move. It finds the pixel that has the lowest value around him and goes towards it.
 
@@ -106,7 +115,7 @@ To install the app I used Android studio. Open the ControlApp folder with androi
 
 ### Possible changes
 
-You can replace the Mega+ESP board with a regular Mega or an Uno board with a separate ESP module. That's what I wanted to do at the beginning, but I didn't manage to upload code to the ESP with this technique (I tried to plug it to the PC with a USB adapter, and I also tried to connect it to the arduino in serial and connect the arduino to the PC. Both methods without success).  
+You can replace the Mega+ESP board with a regular Mega or an Uno board with a separate ESP module. That's what I wanted to do at the beginning, but I didn't manage to upload code to the ESP with this technique (I tried to plug it to the PC with a USB adapter, and I also tried to connect it to the arduino in serial and connect the arduino to the PC. Both methods without success). If you use an Arduino Uno you will have to use the old pathfinding algorithm because the Uno doesn't have enough memory to use the A* algorithm.
 The control algorithm works on the Mega+Wifi and is supposed to work on the normal Mega and on the Uno without changing the pin numbers. If you want to change anything, go to ArduinoProgram/Data.h. If you want to use a separate ESP module, you might also have to change the Serial connection to the ESP on the Arduino side. Go to ArduinoProgram/Communication.cpp and change the SERIALOBJECT.  
 The holes in the robot's body can be used for an Uno or a Mega (and maybe some other board but they work for these ones).
 
